@@ -1,0 +1,48 @@
+program test;
+    var flag, x: boolean;
+        a, b: fraction;
+        c: integer;
+        s: string;
+
+    void PrintString(string s);
+        var k: int;
+
+        begin
+            k = -c;   # dummy assignments
+            k = k*10; # ...
+            print(s);
+        end;
+
+    void CountToThree();
+        begin
+            c = 1;
+            while (c < 4) do
+                begin
+                    print(c);
+                    c = c + 1;
+                end
+        end;
+
+    boolean DummyFun(fraction z, fraction f);
+        var r: fraction;
+
+        begin
+            a = 1_2;
+            b = a + 1_3;
+            print("Podaj ułamek: ");
+            read(f);    # read fraction from stdin
+            r = z/f + a*b;
+            if(r >= 0) then
+                write(r);
+            CountToThree();
+            return true;
+        end;
+begin
+    PrintString("Podaj liczbę całkowitą: ");
+    read(c);
+    flag = false;
+    if(!flag and (c==0)) then
+        x = DummyFun(1.1_2, 3_5);
+    else
+        CountToThree();
+end.
