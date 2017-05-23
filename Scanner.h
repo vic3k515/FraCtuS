@@ -22,6 +22,11 @@ enum Token {
     ELSE,
     DO,
     WHILE,
+    VOIDTYPE,
+    STRINGTYPE,
+    INTEGERTYPE,
+    FRACTIONTYPE,
+    BOOLEANTYPE,
 
     IDENTIFIER,
     INTCONST,
@@ -69,6 +74,11 @@ public:
             {"while",   WHILE},
             {"or",      OROP},
             {"and",     ANDOP},
+            {"void",    VOIDTYPE},
+            {"string",  STRINGTYPE},
+            {"integer", INTEGERTYPE},
+            {"fraction",FRACTIONTYPE},
+            {"boolean", BOOLEANTYPE},
     };
 
     Scanner(Reader*);

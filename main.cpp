@@ -1,6 +1,7 @@
 #include <iostream>
 #include "Reader.h"
 #include "Scanner.h"
+#include "Parser.h"
 
 std::map<Token, std::string> mappings = {
     {PROGRAM,     "PROGRAM"},
@@ -13,6 +14,11 @@ std::map<Token, std::string> mappings = {
     {ELSE,        "ELSE"},
     {DO,          "DO"},
     {WHILE,       "WHILE"},
+    {VOIDTYPE,    "VOIDTYPE"},
+    {STRINGTYPE,  "STRINGTYPE"},
+    {INTEGERTYPE, "INTEGERTYPE"},
+    {FRACTIONTYPE,"FRACTIONTYPE"},
+    {BOOLEANTYPE, "BOOLEANTYPE,"},
 
     {IDENTIFIER,  "IDENTIFIER"},
     {INTCONST,    "INTCONST"},
@@ -51,22 +57,37 @@ int main(int argc, char *argv[]) {
     }
     Reader *reader = new Reader(argv[1]);
     Scanner *scanner = new Scanner(reader);
+    Parser parser(*scanner);
 
-    Token t;
-    while (!(scanner->errorOccured()) && ((t = scanner->nextSymbol()) != END_OF_FILE)) {
-        std::cout << mappings[t];
-        if (t == FRACTCONST) {
-            std::cout << ": " << scanner->getLastFraction();
+
+//    Token t;
+//    while (!(scanner->errorOccured()) && ((t = scanner->nextSymbol()) != END_OF_FILE)) {
+//        std::cout << mappings[t];
+//        if (t == FRACTCONST) {
+//            std::cout << ": " << scanner->getLastFraction();
+//        }
+//        if (t == IDENTIFIER || t == CHARCONST) {
+//            std::cout << ": " << scanner->getLastString();
+//        }
+//        if (t == INTCONST) {
+//            std::cout << ": " << scanner->getLastNumber();
+//        }
+//        std::cout << std::endl;
+//    }
+    try {
+        parser.parse();
+    } catch (ParseException e) {
+        std::cout << e.what()
+                  << ": "
+                  << mappings[parser.getCurrSymbol()]
+                  << " in line: "
+                  << scanner->getLine()
+                  << std::endl;
+
+        if (scanner->getCurrentSymbol() == IDENTIFIER) {
+            std::cout << scanner->getLastString() << std::endl;
         }
-        if (t == IDENTIFIER || t == CHARCONST) {
-            std::cout << ": " << scanner->getLastString();
-        }
-        if (t == INTCONST) {
-            std::cout << ": " << scanner->getLastNumber();
-        }
-        std::cout << std::endl;
     }
-
     delete reader;
     delete scanner;
     return 0;
