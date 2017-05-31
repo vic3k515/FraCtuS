@@ -15,6 +15,16 @@ Parser::Parser(Scanner &scanner)
     sign = { PLUS, MINUS };
     varTypes = { STRINGTYPE, BOOLEANTYPE, INTEGERTYPE, FRACTIONTYPE };
     retTypes = { VOIDTYPE, STRINGTYPE, BOOLEANTYPE, INTEGERTYPE, FRACTIONTYPE };
+
+    openScope("global");
+    scope->insert("integer", Int);
+    scope->insert("string", String);
+    scope->insert("fraction", Fraction);
+    scope->insert("false", Bool);
+    scope->insert("true", Bool);
+    scope->insert("program", Proc);
+
+    nextSymbol();
 }
 
 void Parser::accept(const Token &tkn) {
@@ -37,12 +47,15 @@ bool Parser::has(const SymSet &sset, const Token &tkn) {
     return sset.find(tkn) != sset.end();
 }
 
+void Parser::openScope(const std::string &scopeName) {
+    scope = new Scope(scopeName, *this, nullptr);
+}
+
 void Parser::nextSymbol() {
     symbol = scanner.nextSymbol();
 }
 
 void Parser::parse() {
-    nextSymbol();
     accept(PROGRAM);
 
     if(symbol == IDENTIFIER) {
@@ -57,7 +70,7 @@ void Parser::parse() {
 void Parser::block() {
     variablePart();
     functionPart();
-    compositeStatement();
+    compoundStatement();
 }
 
 void Parser::variablePart() {
@@ -122,7 +135,7 @@ void Parser::functionDeclaration() {
     block();
 }
 
-void Parser::compositeStatement() {
+void Parser::compoundStatement() {
     accept(BEGIN);
     statement();
     while (symbol == SEMICOLON) {
@@ -149,7 +162,7 @@ void Parser::statement() {
             whileStatement();
             break;
         case BEGIN:
-            compositeStatement();
+            compoundStatement();
             break;
         case IDENTIFIER:
             // can be assignment or function call
@@ -171,6 +184,10 @@ void Parser::assignment() {
 void Parser::functionCall() {
     accept(IDENTIFIER);
     accept(PARENOPEN);
+    if (symbol == PARENCLOSE) { // 0 parameters
+        accept(PARENCLOSE);
+        return;
+    }
     while (symbol == IDENTIFIER) {
         expression();
         if (symbol == COMMA) {
@@ -195,7 +212,9 @@ void Parser::ifStatement() {
 
 void Parser::simpleIfStatement() {
     accept(IF);
+    accept(PARENOPEN);
     expression();
+    accept(PARENCLOSE);
     accept(THEN);
     statement();
 }

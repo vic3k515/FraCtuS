@@ -6,11 +6,10 @@ set(CMAKE_CXX_STANDARD 11)
 set(SOURCE_FILES
     main.cpp
     Scanner.cpp
-    #Scanner.h
     Reader.cpp
-    #Reader.h
     Parser.cpp
-    Fraction.cpp)
-    #Fraction.h)
+    Fraction.cpp
+    Scope.cpp
+    SemanticAnalyzer.cpp)
 
 add_executable(fractus ${SOURCE_FILES})

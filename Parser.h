@@ -9,6 +9,7 @@
 #include <set>
 
 #include "Scanner.h"
+#include "Scope.h"
 
 class ParseException : std::exception {
 public:
@@ -22,6 +23,7 @@ public:
     std::string err;
 };
 
+class Scope;
 
 class Parser {
 public:
@@ -37,6 +39,7 @@ private:
     void accept(const Token& tkn);
     void accept(const SymSet& sset);
     bool has(const SymSet &sset, const Token &tkn);
+    void openScope(const std::string &scopeName);
     void nextSymbol();
     void block();
     void variablePart();
@@ -45,7 +48,7 @@ private:
     void type();
     void functionPart();
     void functionDeclaration();
-    void compositeStatement();
+    void compoundStatement();
     void statement();
     void assignment();
     void functionCall();
@@ -67,6 +70,7 @@ private:
             retTypes;
 
     Scanner &scanner;
+    Scope *scope;
     Token symbol;
 };
 
