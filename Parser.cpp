@@ -15,14 +15,14 @@ Parser::Parser(Scanner &scanner)
     sign = { PLUS, MINUS };
     varTypes = { STRINGTYPE, BOOLEANTYPE, INTEGERTYPE, FRACTIONTYPE };
     retTypes = { VOIDTYPE, STRINGTYPE, BOOLEANTYPE, INTEGERTYPE, FRACTIONTYPE };
-
-    openScope("global");
-    scope->insert("integer", Int);
-    scope->insert("string", String);
-    scope->insert("fraction", Fraction);
-    scope->insert("false", Bool);
-    scope->insert("true", Bool);
-    scope->insert("program", Proc);
+//
+//    openScope("global");
+//    scope->insert("integer", Int);
+//    scope->insert("string", String);
+//    scope->insert("fraction", Fraction);
+//    scope->insert("false", Bool);
+//    scope->insert("true", Bool);
+//    //scope->insert("program", Proc);
 
     nextSymbol();
 }
@@ -31,7 +31,7 @@ void Parser::accept(const Token &tkn) {
     if (symbol == tkn) {
         nextSymbol();
     } else {
-        throw ParseException("unexpected atom");
+        throw ParseException("Syntax error: unexpected atom");
     }
 }
 
@@ -39,7 +39,7 @@ void Parser::accept(const SymSet& sset) {
     if (sset.find(symbol) != sset.end()) {
         nextSymbol();
     } else {
-        throw ParseException("unexpected atom");
+        throw ParseException("Syntax error: unexpected atom");
     }
 }
 
@@ -47,54 +47,91 @@ bool Parser::has(const SymSet &sset, const Token &tkn) {
     return sset.find(tkn) != sset.end();
 }
 
-void Parser::openScope(const std::string &scopeName) {
-    scope = new Scope(scopeName, *this, nullptr);
-}
+//void Parser::openScope(const std::string &scopeName) {
+//    //scope = new Scope(scopeName, *this, nullptr);
+//}
 
 void Parser::nextSymbol() {
     symbol = scanner.nextSymbol();
 }
 
-void Parser::parse() {
-    accept(PROGRAM);
-
-    if(symbol == IDENTIFIER) {
-        std::cout << "Program name: " << scanner.getLastString() << std::endl;
-        accept(IDENTIFIER);
+ProgramNode* Parser::parse() {
+    ProgramNode *node = program();
+    if (symbol != END_OF_FILE) {
+        std::cout << "After parsing current token '"<< symbol << "' is different than EOF!" << std::endl;
     }
+    return node;
+}
+
+ProgramNode* Parser::program() {
+    /**
+     *  "program" , Identifier , ';' , Block , '.'
+     */
+    accept(PROGRAM);
+    VarNode *varNode = var();
+    std::cout << "Program name: " << varNode->name << std::endl;
     accept(SEMICOLON);
-    block();
+    BlockNode *blockNode = block();
+    ProgramNode *programNode = new ProgramNode(varNode->name, blockNode);
     accept(PERIOD);
+    return programNode;
 }
 
-void Parser::block() {
-    variablePart();
-    functionPart();
-    compoundStatement();
+BlockNode* Parser::block() {
+    /**
+     * VarPart , FuncPart , CompStment
+     */
+    std::vector<VarDeclNode*>  varDecls;
+    std::vector<ProcDeclNode*> procDecls;
+    varDecls = variablePart();
+    procDecls = functionPart();
+    CompoundNode *compoundNode = compoundStatement();
+    BlockNode *blockNode = new BlockNode(varDecls, procDecls, compoundNode);
+    return blockNode;
 }
 
-void Parser::variablePart() {
+std::vector<VarDeclNode*> Parser::variablePart() {
+    /**
+     * empty | "var" , VarDecl , ';' , { VarDecl , ';' }
+     */
+    std::vector<VarDeclNode*> varDecls;
     if (symbol == VAR) {
         accept(VAR);
         do {
-            variableDeclaration();
+            std::vector<VarDeclNode*> varDecl = variableDeclaration();
+            varDecls.insert( varDecls.end(), varDecl.begin(), varDecl.end());
             accept(SEMICOLON);
         } while (symbol == IDENTIFIER);
     }
+    return varDecls;
 }
 
-void Parser::variableDeclaration() {
-    accept(IDENTIFIER);
+std::vector<VarDeclNode*> Parser::variableDeclaration() {
+    /**
+     * Identifier , { ',' , Identifier }, ':' , Type ;
+     */
+    std::vector<VarDeclNode*> varDecls;
+    std::vector<VarNode*> varNodes;
+    varNodes.push_back(var());
+
     while (symbol == COMMA) {
         accept(COMMA);
-        // install var here
+        varNodes.push_back(new VarNode(scanner.getLastString()));
         accept(IDENTIFIER);
     }
     accept(COLON);
-    type();
+
+    TypeNode *typeNode = varType();
+    for (VarNode* varNode : varNodes) {
+        varDecls.push_back(new VarDeclNode(varNode, typeNode));
+    }
+    return varDecls;
 }
 
-void Parser::type() {
+TypeNode* Parser::type(const SymSet &prefTypes) {
+    /**
+     * "fraction" , "integer" , "boolean" , "string"
+     */
 //    // check type here
 //    if (symbol == IDENTIFIER) {
 //        std::string s = scanner.getLastString();
@@ -107,40 +144,70 @@ void Parser::type() {
 //        }
 //    }
 //    throw ParseException("unexpected variable type");
-    accept(varTypes);
+    std::string typeName = scanner.getLastString();
+    accept(prefTypes);
+    TypeNode *typeNode = new TypeNode(typeName);
+    return typeNode;
 }
 
-void Parser::functionPart() {
+TypeNode* Parser::varType() {
+    return type(varTypes);
+}
+
+TypeNode* Parser::retType() {
+    return type(retTypes);
+}
+
+std::vector<ProcDeclNode*> Parser::functionPart() {
+    /**
+     * { FuncDecl , ';' }
+     */
+    std::vector<ProcDeclNode*> procDecls;
     while (has(retTypes, symbol)) {
-        functionDeclaration();
+        ProcDeclNode *procDeclNode = functionDeclaration();
+        procDecls.push_back(procDeclNode);
         accept(SEMICOLON);
     }
+    return procDecls;
 }
 
-void Parser::functionDeclaration() {
-    // install function here
-    accept(retTypes); // return type
-    accept(IDENTIFIER); // function name
+ProcDeclNode* Parser::functionDeclaration() {
+    /**
+     * Type , WhiteSpace , Identifier , '(' , [ Type , Identifier {, ',' ,
+     *         Type, Identifier } ] , ')' , ';' , Block
+     */
+    TypeNode *rType = retType();
+    std::string procName = scanner.getLastString();
+    accept(IDENTIFIER);
+
+    std::vector<ParamNode*> params;
     accept(PARENOPEN);
     while (has(varTypes, symbol)) {
-        // read function arguments
-        accept(varTypes); // arg type
-        accept(IDENTIFIER); // arg name
+        TypeNode *paramType = varType();
+        VarNode *varNode = var();
+        params.push_back(new ParamNode(varNode, paramType));
         if (symbol == COMMA) {
             accept(COMMA);
         }
     }
     accept(PARENCLOSE);
     accept(SEMICOLON);
-    block();
+    BlockNode *blockNode = block();
+    ProcDeclNode *procDeclNode = new ProcDeclNode(procName, rType, params, blockNode);
+    return procDeclNode;
 }
 
-void Parser::compoundStatement() {
+CompoundNode* Parser::compoundStatement() {
+    /**
+     * "begin" , Stment , { ';' , Stment } , "end"
+     */
     accept(BEGIN);
-    statement();
+    std::vector<Node*> statements;
+    statements.push_back(statement());
+
     while (symbol == SEMICOLON) {
         accept(SEMICOLON);
-        statement();
+        statements.push_back(statement());
     }
 //    do {
 //        statement();
@@ -148,133 +215,199 @@ void Parser::compoundStatement() {
 //    }
 //    while (has({RETURN,IF,WHILE,BEGIN,IDENTIFIER},symbol));
     accept(END);
+    CompoundNode *compoundNode = new CompoundNode();
+    compoundNode->children = std::move(statements);
+    return compoundNode;
 }
 
-void Parser::statement() {
+Node* Parser::statement() {
+    /**
+     * Assignment | FuncCall | Return | IfStment | WhileStment | CompStment
+     */
+    Node *node;
     switch (symbol) {
         case RETURN:
-            functionReturn();
+            node = functionReturn();
             break;
         case IF:
-            ifStatement();
+            node = ifStatement();
             break;
         case WHILE:
-            whileStatement();
+            node = whileStatement();
             break;
         case BEGIN:
-            compoundStatement();
+            node = compoundStatement();
             break;
         case IDENTIFIER:
             // can be assignment or function call
             if (symbol) { // FIXME: if symbol is already declared variable identifier
-                assignment();
+                node = assignment();
             } else {
-                functionCall();
+                node = functionCall();
             }
             break;
     }
+    return node;
 }
 
-void Parser::assignment() {
-    var();
+AssignNode* Parser::assignment() {
+    VarNode *left = var();
     accept(EQALSIGN);
-    expression();
+    Node *right = expression();
+    AssignNode *assignNode = new AssignNode(left, right);
+    return assignNode;
 }
 
-void Parser::functionCall() {
-    accept(IDENTIFIER);
+ProcCallNode* Parser::functionCall() {
+    /**
+     * Identifier , '(' [, Expr, { "," , Expr } ], ')'
+     */
+    ProcCallNode *node;
+    std::vector<Node*> args;
+    VarNode *procId = var();
+    node = new ProcCallNode(procId, args);
+
     accept(PARENOPEN);
-    if (symbol == PARENCLOSE) { // 0 parameters
+    if (symbol == PARENCLOSE) { // 0 arguments
         accept(PARENCLOSE);
-        return;
+        return node;
     }
     while (symbol == IDENTIFIER) {
-        expression();
+        node->arguments.push_back(expression());
         if (symbol == COMMA) {
             accept(COMMA);
         }
     }
     accept(PARENCLOSE);
+    return node;
 }
 
-void Parser::functionReturn() {
+Node* Parser::functionReturn() {
     accept(RETURN);
-    expression();
+    return new ReturnNode(expression());
 }
 
-void Parser::ifStatement() {
-    simpleIfStatement();
+IfNode* Parser::ifStatement() {
+    IfNode *node = simpleIfStatement();
     if (symbol == ELSE) {
         accept(ELSE);
-        statement();
+        node->elseNode = statement();
     }
+    return node;
 }
 
-void Parser::simpleIfStatement() {
+IfNode* Parser::simpleIfStatement() {
+    Node *expr, *thenNode;
     accept(IF);
     accept(PARENOPEN);
-    expression();
+    expr = expression();
     accept(PARENCLOSE);
     accept(THEN);
-    statement();
+    thenNode = statement();
+    return new IfNode(expr, thenNode, nullptr);
 }
 
-void Parser::whileStatement() {
+WhileNode* Parser::whileStatement() {
+    Node *expr, *stmt;
     accept(WHILE);
-    expression();
+    expr = expression();
     accept(DO);
-    statement();
+    stmt = statement();
+    return new WhileNode(expr, stmt);
 }
 
-void Parser::expression() {
-    simpleExpression();
+Node* Parser::expression() {
+    /**
+     * SimpExpr [, RelOp , SimpExpr ] ;
+     */
+    Node *node = simpleExpression();
     if (has(relOp, symbol)) {
-        nextSymbol();
-        simpleExpression();
+        Token op = symbol;
+        accept(relOp);
+        node = new BinOpNode(node, op, simpleExpression());
     }
+    return node;
 }
 
-void Parser::simpleExpression() {
+Node* Parser::simpleExpression() {
+    /**
+     * [Sign ,] Term , { AddOp , Term } | Bool
+     */
+    Node *node;
+    std::string id = scanner.getLastString();
+    if (symbol == IDENTIFIER && (id == "true" || id == "false")) {
+        node = new VarNode(id);
+        accept(IDENTIFIER);
+        return node;
+    }
+
     if (has(sign, symbol)) {
-        nextSymbol();
+        Token sign_ = symbol;
+        accept(sign);
+        node = new UnaryOpNode(sign_, term());
+    } else {
+        node = term();
     }
-    term();
     while (has(addOp, symbol)) {
-        nextSymbol();
-        term();
+        Token op = symbol;
+        accept(addOp);
+        node = new BinOpNode(node, op, term());
     }
+    return node;
 }
 
-void Parser::term() {
-    factor();
+Node* Parser::term() {
+    /**
+     * Factor , { MultOp , Factor }
+     */
+    Node *node = factor();
     while (has(multOp, symbol)) {
-        nextSymbol();
-        factor();
+        Token op = symbol;
+        accept(multOp);
+        node = new BinOpNode(node, op, factor());
     }
+    return node;
 }
 
-void Parser::factor() {
+Node* Parser::factor() {
+    /**
+     * Var | Constant | '(' , Expr , ')' | '!' , Factor
+     */
+    Node *node;
     switch (symbol) {
         case IDENTIFIER:
-            var();
+            node = var();
             break;
         case FRACTCONST:
+            node = new FractNode(symbol, scanner.getLastFraction());
+            accept(FRACTCONST);
+            break;
         case INTCONST:
+            node = new IntNode(symbol, scanner.getLastNumber());
+            accept(INTCONST);
+            break;
         case CHARCONST:
-            nextSymbol();
+            node = new StringNode(symbol, scanner.getLastString());
+            accept(CHARCONST);
             break;
         case PARENOPEN:
             accept(PARENOPEN);
-            expression();
+            node = expression();
             accept(PARENCLOSE);
             break;
         case NOTSIGN:
             accept(NOTSIGN);
-            factor();
+            node = factor(); // TODO: treat '!' somehow
             break;
     }
+    return node;
 }
 
-void Parser::var() {
+VarNode* Parser::var() {
+    /**
+     * Identifier
+     */
+    VarNode* varNode = new VarNode(scanner.getLastString());
     accept(IDENTIFIER);
+    return varNode;
 }

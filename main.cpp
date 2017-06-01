@@ -2,6 +2,7 @@
 #include "Reader.h"
 #include "Scanner.h"
 #include "Parser.h"
+#include "SemanticAnalyzer.h"
 
 std::map<Token, std::string> mappings = {
     {PROGRAM,     "PROGRAM"},
@@ -58,6 +59,7 @@ int main(int argc, char *argv[]) {
     Reader *reader = new Reader(argv[1]);
     Scanner *scanner = new Scanner(reader);
     Parser parser(*scanner);
+    SemanticAnalyzer semAnalyzer;
 
 
 //    Token t;
@@ -74,8 +76,10 @@ int main(int argc, char *argv[]) {
 //        }
 //        std::cout << std::endl;
 //    }
+    ProgramNode *tree = nullptr;
     try {
-        parser.parse();
+        tree = parser.parse();
+
     } catch (ParseException e) {
         std::cout << e.what()
                   << ": "
@@ -88,6 +92,15 @@ int main(int argc, char *argv[]) {
             std::cout << scanner->getLastString() << std::endl;
         }
     }
+
+    if (tree) {
+        try {
+            semAnalyzer.visit(tree);
+        } catch (ParseException e) {
+            std::cout << e.what() << std::endl;
+        }
+    }
+
     delete reader;
     delete scanner;
     return 0;

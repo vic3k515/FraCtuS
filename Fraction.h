@@ -14,13 +14,10 @@ public:
     int numerator;
     int denominator;
 
-    Fraction() {};
-    ~Fraction() {};
+    Fraction();
+    ~Fraction();
 
-    friend std::ostream& operator<<(std::ostream& os, const Fraction& obj) {
-        os << obj.whole << "." << obj.numerator << "_" << obj.denominator;
-        return os;
-    }
+    friend std::ostream& operator<<(std::ostream& os, const Fraction& obj);
 };
 
 

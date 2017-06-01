@@ -8,29 +8,29 @@
 
 #include <set>
 
-#include "Scanner.h"
 #include "Scope.h"
+#include "Ast.h"
 
-class ParseException : std::exception {
+class ParseException : public std::runtime_error {
 public:
-    ParseException(std::string msg) : exception(), err(msg) {};
+    ParseException(std::string msg) : runtime_error(msg) {};
 
-    const char* what() const throw() {
-      return err.c_str();
-    }
-
-  private:
-    std::string err;
+//    const char* what() const throw() {
+//      return err.c_str();
+//    }
+//
+//  private:
+//    std::string err;
 };
 
-class Scope;
+//class Scope;
 
 class Parser {
 public:
     using SymSet = std::set<Token>;
 
     Parser(Scanner &scanner);
-    void parse();
+    ProgramNode* parse();
     Token getCurrSymbol() {
         return symbol;
     }
@@ -39,28 +39,30 @@ private:
     void accept(const Token& tkn);
     void accept(const SymSet& sset);
     bool has(const SymSet &sset, const Token &tkn);
-    void openScope(const std::string &scopeName);
+    //void openScope(const std::string &scopeName);
     void nextSymbol();
-    void block();
-    void variablePart();
-    void variableDeclaration();
-    void varType();
-    void type();
-    void functionPart();
-    void functionDeclaration();
-    void compoundStatement();
-    void statement();
-    void assignment();
-    void functionCall();
-    void functionReturn();
-    void ifStatement();
-    void simpleIfStatement();
-    void whileStatement();
-    void expression();
-    void simpleExpression();
-    void term();
-    void factor();
-    void var();
+    ProgramNode* program();
+    BlockNode* block();
+    std::vector<VarDeclNode*> variablePart();
+    std::vector<VarDeclNode*> variableDeclaration();
+    TypeNode* retType();
+    TypeNode* varType();
+    TypeNode* type(const SymSet &prefTypes);
+    std::vector<ProcDeclNode*> functionPart();
+    ProcDeclNode* functionDeclaration();
+    CompoundNode* compoundStatement();
+    Node* statement();
+    AssignNode* assignment();
+    ProcCallNode* functionCall();
+    Node* functionReturn();
+    IfNode* ifStatement();
+    IfNode* simpleIfStatement();
+    WhileNode* whileStatement();
+    Node* expression();
+    Node* simpleExpression();
+    Node* term();
+    Node* factor();
+    VarNode* var();
 
     SymSet  relOp,
             addOp,

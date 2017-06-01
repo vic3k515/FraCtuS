@@ -1,15 +1,19 @@
 cmake_minimum_required(VERSION 3.5)
 project(fractus)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
+
+include_directories(${CMAKE_SOURCE_DIR})
 
 set(SOURCE_FILES
-    main.cpp
-    Scanner.cpp
-    Reader.cpp
-    Parser.cpp
     Fraction.cpp
+    Reader.cpp
+    Scanner.cpp
+    Ast.cpp
     Scope.cpp
-    SemanticAnalyzer.cpp)
+    Parser.cpp
+    SemanticAnalyzer.cpp
+    main.cpp
+)
 
 add_executable(fractus ${SOURCE_FILES})

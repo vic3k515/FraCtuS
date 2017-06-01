@@ -58,7 +58,6 @@ enum Token {
     OTHERS
 };
 
-
 class Scanner {
 public:
     std::map<std::string, Token> KeyWords = {
