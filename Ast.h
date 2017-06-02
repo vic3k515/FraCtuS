@@ -16,6 +16,7 @@ struct VarDeclNode;
 struct ProcDeclNode;
 struct BlockNode;
 struct TypeNode;
+struct VarNode;
 
 struct Node {
     virtual ~Node() {}
@@ -82,10 +83,10 @@ struct CompoundNode : public Node {
 };
 
 struct AssignNode : public Node {
-    AssignNode(Node *l, Node *r) : left(l), right(r) {}
+    AssignNode(VarNode *l, Node *r) : left(l), right(r) {}
     void accept(Visitor &v) const;
 
-    Node *left;
+    VarNode *left;
     Node *right;
 };
 

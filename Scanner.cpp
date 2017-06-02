@@ -163,6 +163,7 @@ Token Scanner::nextSymbol() {
         if (c == '=') {
             return EQOP;
         }
+        isCharPreloaded = true;
         return EQALSIGN;
     }
     if (c == '<') {
@@ -170,6 +171,7 @@ Token Scanner::nextSymbol() {
         if (c == '=') {
             return LEOP;
         }
+        isCharPreloaded = true;
         return LTOP;
     }
     if (c == '>') {
@@ -177,6 +179,7 @@ Token Scanner::nextSymbol() {
         if (c == '=') {
             return GEOP;
         }
+        isCharPreloaded = true;
         return GTOP;
     }
     return OTHERS;

@@ -52,8 +52,8 @@ private:
     ProcDeclNode* functionDeclaration();
     CompoundNode* compoundStatement();
     Node* statement();
-    AssignNode* assignment();
-    ProcCallNode* functionCall();
+    AssignNode* assignment(VarNode *left = nullptr);
+    ProcCallNode* functionCall(VarNode *procId = nullptr);
     Node* functionReturn();
     IfNode* ifStatement();
     IfNode* simpleIfStatement();
@@ -69,11 +69,13 @@ private:
             multOp,
             sign,
             varTypes,
-            retTypes;
+            retTypes,
+            procParams;
 
     Scanner &scanner;
     Scope *scope;
     Token symbol;
+    bool isSymbolPreloaded;
 };
 
 #endif //FRACTUS_PARSER_H

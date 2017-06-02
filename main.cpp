@@ -79,7 +79,7 @@ int main(int argc, char *argv[]) {
     ProgramNode *tree = nullptr;
     try {
         tree = parser.parse();
-
+        std::cout << "*** No syntax errors ***\n" << std::endl;
     } catch (ParseException e) {
         std::cout << e.what()
                   << ": "
@@ -96,6 +96,7 @@ int main(int argc, char *argv[]) {
     if (tree) {
         try {
             semAnalyzer.visit(tree);
+            std::cout << "*** No semantic errors ***" << std::endl;
         } catch (ParseException e) {
             std::cout << e.what() << std::endl;
         }

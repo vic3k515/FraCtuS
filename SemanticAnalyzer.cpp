@@ -44,6 +44,7 @@ void SemanticAnalyzer::visit(const CompoundNode *n) {
 }
 
 void SemanticAnalyzer::visit(const AssignNode *n) {
+    // type checking here
     n->left->accept(*this);
     n->right->accept(*this);
 }
@@ -84,15 +85,20 @@ void SemanticAnalyzer::visit(const ProcDeclNode *n) {
 }
 
 void SemanticAnalyzer::visit(const IfNode *n) {
-
+    n->condition->accept(*this);
+    n->thenNode->accept(*this);
+    if (n->elseNode){
+        n->elseNode->accept(*this);
+    }
 }
 
 void SemanticAnalyzer::visit(const WhileNode *n) {
-
+    n->condition->accept(*this);
+    n->statement->accept(*this);
 }
 
 void SemanticAnalyzer::visit(const ReturnNode *n) {
-
+    n->expr->accept(*this);
 }
 
 void SemanticAnalyzer::visit(const VarNode *n) {
@@ -125,5 +131,19 @@ void SemanticAnalyzer::visit(const ParamNode *n) {
 }
 
 void SemanticAnalyzer::visit(const ProcCallNode *n) {
+    Descriptor* descriptor = currentScope->lookup(n->proc->name);
+    ProcDescriptor *procDescriptor = static_cast<ProcDescriptor*>(descriptor);
 
+    if ( procDescriptor == nullptr) {
+        throw ParseException("Semantic error: Symbol(identifier) not found '" + n->proc->name + "'");
+    }
+    int procArgsNum = procDescriptor->params.size();
+    int procCallArgsNum = n->arguments.size();
+    if (procArgsNum != procCallArgsNum) {
+        std::string errMsg;
+        errMsg += "Semantic error: Wrong number of arguments for procedure: '";
+        errMsg += n->proc->name + "', expected: ";
+        errMsg += std::to_string(procArgsNum) + ", but got: " + std::to_string(procCallArgsNum);
+        throw ParseException(errMsg);
+    }
 }

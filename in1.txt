@@ -10,17 +10,17 @@ program test;
         begin
             k = -c;   # dummy assignments
             k = k*10; # ...
-            #print(s);
+            print(s);
             if(k==0) then
                 begin
                     k = k - 1;
                     k = k * 2 * 2;
-                    k = k / 2;
+                    k = k / 2
                 end
             else
                 begin
                     k = c + 20;
-                    c = k - 3;
+                    c = k - 3
                 end
         end;
 
@@ -41,25 +41,27 @@ program test;
         begin
             a = 1_2;
             b = a + 1_3;
-            #print("Podaj ułamek: ");
-            #read(f);    # read fraction from stdin
+            print("Podaj ułamek: ");
+            read(f);    # read fraction from stdin
             r = z/f + a*b;
             if(r >= 0) then
                 r = r;
-            #CountToThree();
+            CountToThree();
             return true
         end;
 begin
-    #PrintString("Podaj liczbę całkowitą: ");
-    #read(c);
+    PrintString("Podaj liczbę całkowitą: ");
+    read(c);
     flag = false;
     if(!flag and (c==0)) then
         begin
             #x = DummyFun(1.1_2, 3_5);
-            x=x;
-            x=c
+            x = x;
+            x = c
         end
     else
-        #CountToThree();
-        x=0
+        begin
+            CountToThree();
+            x=0
+        end
 end.

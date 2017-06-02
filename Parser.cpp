@@ -8,13 +8,15 @@
 #include "Parser.h"
 
 Parser::Parser(Scanner &scanner)
-    : scanner(scanner) {
+    : scanner(scanner)
+    , isSymbolPreloaded(false) {
     relOp = { EQOP, LTOP, GTOP, LEOP, GEOP, NEQOP, OROP, ANDOP };
     addOp = { PLUS, MINUS };
     multOp = { MULTSIGN, DIVSIGN };
     sign = { PLUS, MINUS };
     varTypes = { STRINGTYPE, BOOLEANTYPE, INTEGERTYPE, FRACTIONTYPE };
     retTypes = { VOIDTYPE, STRINGTYPE, BOOLEANTYPE, INTEGERTYPE, FRACTIONTYPE };
+    procParams = { IDENTIFIER, INTCONST, FRACTCONST, CHARCONST };
 //
 //    openScope("global");
 //    scope->insert("integer", Int);
@@ -29,7 +31,8 @@ Parser::Parser(Scanner &scanner)
 
 void Parser::accept(const Token &tkn) {
     if (symbol == tkn) {
-        nextSymbol();
+        if (!isSymbolPreloaded)
+            nextSymbol();
     } else {
         throw ParseException("Syntax error: unexpected atom");
     }
@@ -37,7 +40,8 @@ void Parser::accept(const Token &tkn) {
 
 void Parser::accept(const SymSet& sset) {
     if (sset.find(symbol) != sset.end()) {
-        nextSymbol();
+        if (!isSymbolPreloaded)
+            nextSymbol();
     } else {
         throw ParseException("Syntax error: unexpected atom");
     }
@@ -129,21 +133,6 @@ std::vector<VarDeclNode*> Parser::variableDeclaration() {
 }
 
 TypeNode* Parser::type(const SymSet &prefTypes) {
-    /**
-     * "fraction" , "integer" , "boolean" , "string"
-     */
-//    // check type here
-//    if (symbol == IDENTIFIER) {
-//        std::string s = scanner.getLastString();
-//        if (s == "fraction" ||
-//            s == "integer" ||
-//            s == "boolean" ||
-//            s == "string") {
-//            accept(IDENTIFIER);
-//            return;
-//        }
-//    }
-//    throw ParseException("unexpected variable type");
     std::string typeName = scanner.getLastString();
     accept(prefTypes);
     TypeNode *typeNode = new TypeNode(typeName);
@@ -151,10 +140,16 @@ TypeNode* Parser::type(const SymSet &prefTypes) {
 }
 
 TypeNode* Parser::varType() {
+    /**
+     * "void" , "fraction" , "integer" , "boolean" , "string"
+     */
     return type(varTypes);
 }
 
 TypeNode* Parser::retType() {
+    /**
+     * "fraction" , "integer" , "boolean" , "string"
+     */
     return type(retTypes);
 }
 
@@ -240,31 +235,39 @@ Node* Parser::statement() {
             break;
         case IDENTIFIER:
             // can be assignment or function call
-            if (symbol) { // FIXME: if symbol is already declared variable identifier
-                node = assignment();
+            VarNode *pre = var();
+            //isSymbolPreloaded = true;
+            if (symbol == EQALSIGN) { // FIXME: if symbol is already declared variable identifier
+                node = assignment(pre);
+                break;
+            } else if (symbol == PARENOPEN) {
+                node = functionCall(pre);
+                break;
             } else {
-                node = functionCall();
+                throw ParseException("Syntax error: unexpected symbol");
             }
-            break;
     }
     return node;
 }
 
-AssignNode* Parser::assignment() {
-    VarNode *left = var();
+AssignNode* Parser::assignment(VarNode *preloadedLeft) {
+    /**
+     * Var , '=' , Expr
+     */
+    VarNode *left = preloadedLeft ? preloadedLeft : var();
     accept(EQALSIGN);
     Node *right = expression();
     AssignNode *assignNode = new AssignNode(left, right);
     return assignNode;
 }
 
-ProcCallNode* Parser::functionCall() {
+ProcCallNode* Parser::functionCall(VarNode *preloadedProcId) {
     /**
      * Identifier , '(' [, Expr, { "," , Expr } ], ')'
      */
     ProcCallNode *node;
     std::vector<Node*> args;
-    VarNode *procId = var();
+    VarNode *procId = preloadedProcId ? preloadedProcId : var();
     node = new ProcCallNode(procId, args);
 
     accept(PARENOPEN);
@@ -272,7 +275,7 @@ ProcCallNode* Parser::functionCall() {
         accept(PARENCLOSE);
         return node;
     }
-    while (symbol == IDENTIFIER) {
+    while (has(procParams, symbol)) {
         node->arguments.push_back(expression());
         if (symbol == COMMA) {
             accept(COMMA);
@@ -283,11 +286,17 @@ ProcCallNode* Parser::functionCall() {
 }
 
 Node* Parser::functionReturn() {
+    /**
+     * "return" , Expr
+     */
     accept(RETURN);
     return new ReturnNode(expression());
 }
 
 IfNode* Parser::ifStatement() {
+    /**
+     * SimpleIf [, "else" , Stment ]
+     */
     IfNode *node = simpleIfStatement();
     if (symbol == ELSE) {
         accept(ELSE);
@@ -297,6 +306,9 @@ IfNode* Parser::ifStatement() {
 }
 
 IfNode* Parser::simpleIfStatement() {
+    /**
+     * "if" , Expr , "then" , Stment
+     */
     Node *expr, *thenNode;
     accept(IF);
     accept(PARENOPEN);
@@ -308,6 +320,9 @@ IfNode* Parser::simpleIfStatement() {
 }
 
 WhileNode* Parser::whileStatement() {
+    /**
+     * "while" , Expr , "do" , Stment
+     */
     Node *expr, *stmt;
     accept(WHILE);
     expr = expression();

@@ -146,11 +146,21 @@ unsigned int Scope::getLevel() const {
 
 void Scope::initializeBuiltInTypes() {
     insert(new BuiltInTypeDescriptor("integer"));
-    insert(new BuiltInTypeDescriptor("string"));
-    insert(new BuiltInTypeDescriptor("fraction"));
     insert(new BuiltInTypeDescriptor("boolean"));
     insert(new BuiltInTypeDescriptor("false"));
     insert(new BuiltInTypeDescriptor("true"));
+    BuiltInTypeDescriptor *fractionDesc = new BuiltInTypeDescriptor("fraction");
+    BuiltInTypeDescriptor *stringDesc = new BuiltInTypeDescriptor("string");
+    insert(stringDesc);
+    insert(fractionDesc);
+
+    std::vector<VarDescriptor*> printParams;
+    printParams.push_back(new VarDescriptor("s", stringDesc));
+    insert(new ProcDescriptor("print", "void", printParams));
+
+    std::vector<VarDescriptor*> readParams;
+    readParams.push_back(new VarDescriptor("f", fractionDesc));
+    insert(new ProcDescriptor("read", "void", readParams));
 
 //    insert("integer", Int);
 //    insert("string", String);
