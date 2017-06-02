@@ -390,9 +390,17 @@ Node* Parser::factor() {
      */
     Node *node;
     switch (symbol) {
-        case IDENTIFIER:
-            node = var();
-            break;
+        case IDENTIFIER: {
+            // can be variable or function call
+            VarNode *pre = var();
+            if (symbol == PARENOPEN) {
+                node = functionCall(pre);
+                break;
+            } else {
+                node = pre;
+                break;
+            }
+        }
         case FRACTCONST:
             node = new FractNode(symbol, scanner.getLastFraction());
             accept(FRACTCONST);

@@ -55,7 +55,7 @@ begin
     flag = false;
     if(!flag and (c==0)) then
         begin
-            #x = DummyFun(1.1_2, 3_5);
+            x = DummyFun(1.1_2, 3_5);
             x = x;
             x = c
         end

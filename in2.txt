@@ -1,18 +1,17 @@
 program test;
     var n: integer;
 
-    void Fibonacci(integer n);
+    integer Fibonacci(integer n);
         var tmp: integer;
         begin
             if (n<3) then
                 return 1;
 
-            tmp = Fibonacci(n-2) + Fibonacci(n-1);
-            return tmp;
+            tmp = Fibonacci(n - 2) + Fibonacci(n - 1);
+            return tmp
         end;
 
     begin
-        #PrintString("Podaj numer wyrazu ciągu: ");
-        #read(n);
+        read(n);
         Fibonacci(n)
     end.

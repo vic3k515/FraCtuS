@@ -87,6 +87,7 @@ Token Scanner::nextSymbol() {
                 return INTCONST;
             }
         } else {
+            isCharPreloaded = true;
             return MINUS;
         }
     }
