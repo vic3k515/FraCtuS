@@ -1,5 +1,6 @@
 //
-// Created by franek on 01.06.17.
+// Ast source file
+// Wiktor Franus, WUT 2017
 //
 
 #include "Ast.h"

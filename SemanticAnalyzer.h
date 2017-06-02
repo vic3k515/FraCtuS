@@ -1,5 +1,6 @@
 //
-// Created by franek on 31.05.17.
+// Semantic analyzer implementing visitor interface
+// Wiktor Franus, WUT 2017
 //
 
 #ifndef FRACTUS_SEMANTICANALYZER_H
@@ -35,6 +36,4 @@ public:
     void visit(const ProcCallNode *n);
 };
 
-
 #endif //FRACTUS_SEMANTICANALYZER_H
-

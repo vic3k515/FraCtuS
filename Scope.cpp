@@ -1,12 +1,12 @@
 //
-// Created by franek on 28.05.17.
+// Scope source file
+// Wiktor Franus, WUT 2017
 //
 
 #include "Scope.h"
 
-Descriptor::Descriptor(const std::string &name, /*DescType descType,*/ const std::string &type)
+Descriptor::Descriptor(const std::string &name, const std::string &type)
 : name(name)
-//, descType(descType)
 , type(type)
 {}
 
@@ -40,15 +40,6 @@ ProcDescriptor::ProcDescriptor(const std::string &name, const std::string &retTy
 : Descriptor(name, retType)
 , params(params)
 {}
-//bool Descriptor::operator==(const Descriptor &oth) const {
-//    return this->name == oth.name
-//           && this->descType == oth.descType
-//           && this->type == oth.type;
-//}
-
-//bool Scope::descComp(Descriptor * left, Descriptor * right) {
-//    return left->name.compare(right);
-//}
 
 std::ostream& operator<<(std::ostream& stream, const BuiltInTypeDescriptor &d) {
     stream << "<BuildInTypeDescriptor(name=" << d.name << ")>";
@@ -97,31 +88,21 @@ void PrintDescVisitor::visit(const ProcDescriptor *n) {
     stream << *n;
 }
 
-Scope::Scope(const std::string &name, /*Parser &parser,*/ unsigned int level, Scope *extscope)
+Scope::Scope(const std::string &name, unsigned int level, Scope *extscope)
 : scopeName(name)
-//, parser(parser)
 , level(level)
 , enclosingScope(extscope)
 {}
 
 Descriptor* Scope::insert(Descriptor *symbol) {
-    //Descriptor* symbol = new Descriptor(name, /*descType,*/ type);
-//    if (symbols.insert({name, symbol}).second == false) {
-//        throw ParseException("Symbol is already declared!");
-//    }
-
-    // insert return pair <iterator tp inserted, bool>
     std::cout << "Insert: " << symbol->name << std::endl;
     return (*(symbols.insert({symbol->name, symbol}).first)).second;
 }
 
-Descriptor* Scope::lookup(const std::string &name, /*ExpectedTypes expTypes*/ bool currentScopeOnly) {
+Descriptor* Scope::lookup(const std::string &name, bool currentScopeOnly) {
     std::cout << "Lookup: " << name << ". (Scope name: " << scopeName << ")" << std::endl;
     auto it = symbols.find(name);
     if (it != symbols.end()) {
-//        if (expTypes.find(it->second->type) != expTypes.end()) {
-//            return it->second;
-//        }
         return it->second;
     }
 
@@ -161,12 +142,6 @@ void Scope::initializeBuiltInTypes() {
     std::vector<VarDescriptor*> readParams;
     readParams.push_back(new VarDescriptor("f", fractionDesc));
     insert(new ProcDescriptor("read", "void", readParams));
-
-//    insert("integer", Int);
-//    insert("string", String);
-//    insert("fraction", Fraction);
-//    insert("false", Bool);
-//    insert("true", Bool);
 }
 
 std::ostream& operator<<(std::ostream& os, const Scope& obj) {
@@ -186,5 +161,7 @@ std::ostream& operator<<(std::ostream& os, const Scope& obj) {
     for (auto symbPair : obj.symbols) {
         os << (Descriptor*)symbPair.second << "\n";
     }
+    os << "---------------------------";
+
     return os;
 }

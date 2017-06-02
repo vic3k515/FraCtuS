@@ -8,8 +8,7 @@
 #include "Parser.h"
 
 Parser::Parser(Scanner &scanner)
-    : scanner(scanner)
-    , isSymbolPreloaded(false) {
+    : scanner(scanner) {
     relOp = { EQOP, LTOP, GTOP, LEOP, GEOP, NEQOP, OROP, ANDOP };
     addOp = { PLUS, MINUS };
     multOp = { MULTSIGN, DIVSIGN };
@@ -17,21 +16,12 @@ Parser::Parser(Scanner &scanner)
     varTypes = { STRINGTYPE, BOOLEANTYPE, INTEGERTYPE, FRACTIONTYPE };
     retTypes = { VOIDTYPE, STRINGTYPE, BOOLEANTYPE, INTEGERTYPE, FRACTIONTYPE };
     procParams = { IDENTIFIER, INTCONST, FRACTCONST, CHARCONST };
-//
-//    openScope("global");
-//    scope->insert("integer", Int);
-//    scope->insert("string", String);
-//    scope->insert("fraction", Fraction);
-//    scope->insert("false", Bool);
-//    scope->insert("true", Bool);
-//    //scope->insert("program", Proc);
 
     nextSymbol();
 }
 
 void Parser::accept(const Token &tkn) {
     if (symbol == tkn) {
-        if (!isSymbolPreloaded)
             nextSymbol();
     } else {
         throw ParseException("Syntax error: unexpected atom");
@@ -40,7 +30,6 @@ void Parser::accept(const Token &tkn) {
 
 void Parser::accept(const SymSet& sset) {
     if (sset.find(symbol) != sset.end()) {
-        if (!isSymbolPreloaded)
             nextSymbol();
     } else {
         throw ParseException("Syntax error: unexpected atom");
@@ -51,10 +40,6 @@ bool Parser::has(const SymSet &sset, const Token &tkn) {
     return sset.find(tkn) != sset.end();
 }
 
-//void Parser::openScope(const std::string &scopeName) {
-//    //scope = new Scope(scopeName, *this, nullptr);
-//}
-
 void Parser::nextSymbol() {
     symbol = scanner.nextSymbol();
 }
@@ -62,7 +47,8 @@ void Parser::nextSymbol() {
 ProgramNode* Parser::parse() {
     ProgramNode *node = program();
     if (symbol != END_OF_FILE) {
-        std::cout << "After parsing current token '"<< symbol << "' is different than EOF!" << std::endl;
+        std::cout << "Parse error: current token '"<< symbol
+                  << "' is different than EOF!" << std::endl;
     }
     return node;
 }
@@ -106,6 +92,8 @@ std::vector<VarDeclNode*> Parser::variablePart() {
             varDecls.insert( varDecls.end(), varDecl.begin(), varDecl.end());
             accept(SEMICOLON);
         } while (symbol == IDENTIFIER);
+    } else {
+        // empty
     }
     return varDecls;
 }
@@ -237,7 +225,7 @@ Node* Parser::statement() {
             // can be assignment or function call
             VarNode *pre = var();
             //isSymbolPreloaded = true;
-            if (symbol == EQALSIGN) { // FIXME: if symbol is already declared variable identifier
+            if (symbol == EQALSIGN) {
                 node = assignment(pre);
                 break;
             } else if (symbol == PARENOPEN) {
@@ -386,7 +374,7 @@ Node* Parser::term() {
 
 Node* Parser::factor() {
     /**
-     * Var | Constant | '(' , Expr , ')' | '!' , Factor
+     * FuncCall | Var | Constant | '(' , Expr , ')' | '!' , Factor
      */
     Node *node;
     switch (symbol) {

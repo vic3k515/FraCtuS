@@ -8,22 +8,13 @@
 
 #include <set>
 
-#include "Scope.h"
 #include "Ast.h"
 
 class ParseException : public std::runtime_error {
 public:
     ParseException(std::string msg) : runtime_error(msg) {};
-
-//    const char* what() const throw() {
-//      return err.c_str();
-//    }
-//
-//  private:
-//    std::string err;
 };
 
-//class Scope;
 
 class Parser {
 public:
@@ -39,8 +30,9 @@ private:
     void accept(const Token& tkn);
     void accept(const SymSet& sset);
     bool has(const SymSet &sset, const Token &tkn);
-    //void openScope(const std::string &scopeName);
     void nextSymbol();
+
+    // RD parser methods:
     ProgramNode* program();
     BlockNode* block();
     std::vector<VarDeclNode*> variablePart();
@@ -73,9 +65,7 @@ private:
             procParams;
 
     Scanner &scanner;
-    Scope *scope;
     Token symbol;
-    bool isSymbolPreloaded;
 };
 
 #endif //FRACTUS_PARSER_H

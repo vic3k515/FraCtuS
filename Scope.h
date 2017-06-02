@@ -1,5 +1,6 @@
 //
-// Created by franek on 28.05.17.
+// Representation of scope and symbols (descriptors)
+// Wiktor Franus, WUT 2017
 //
 
 #ifndef FRACTUS_SCOPE_H
@@ -11,38 +12,15 @@
 #include <vector>
 #include <unordered_map>
 #include <functional>
-//#include "Parser.h"
-
-//class Parser;
-//class Scope;
-
-//enum class Type {
-//    Int,
-//    Fraction,
-//    Bool,
-//    String,
-//    //Proc
-//    None
-//};
-
-//enum DescType {
-//    VarId,
-//    ConstId,
-//    TypeId,
-//    ProcId,
-//    //ProgId
-//};
 
 class DescVisitor;
 
 struct Descriptor {
-    Descriptor(const std::string &name, /*DescType descType,*/ const std::string &type = std::string(""));
+    Descriptor(const std::string &name, const std::string &type = std::string(""));
     virtual ~Descriptor() {}
     virtual void accept(DescVisitor &v) const = 0;
 
     std::string name;
-    //DescType descType;
-    //Type type;
     std::string type;
 
     //bool operator==(const Descriptor &oth) const;
@@ -97,32 +75,27 @@ private:
 struct DescriptorPtrEq {
     bool operator () ( Descriptor const * lhs, Descriptor const * rhs ) const {
         return lhs->name == rhs->name
-               //&& lhs->descType == rhs->descType
                && lhs->type == rhs->type;
     }
 };
 
 class Scope {
 public:
-    using ExpectedTypes = std::set<std::string>;
-
-    Scope(const std::string& name, /*Parser& parser,*/ unsigned int level, Scope *extscope);
+    Scope(const std::string& name, unsigned int level, Scope *extscope);
     ~Scope();
     Descriptor *insert(Descriptor *symbol);
-    Descriptor *lookup(const std::string &name, /*ExpectedTypes expTypes*/ bool currentScopeOnly = false);
+    Descriptor *lookup(const std::string &name, bool currentScopeOnly = false);
+    void initializeBuiltInTypes();
     Scope *getEnclosingScope() const;
     unsigned int getLevel() const;
 
-    void initializeBuiltInTypes();
     friend std::ostream& operator<<(std::ostream& os, const Scope& obj);
 
 private:
     std::string scopeName;
-    //Parser &parser;
     unsigned int level;
     Scope *enclosingScope;
     std::unordered_map<std::string, Descriptor*> symbols;
 };
-
 
 #endif //FRACTUS_SCOPE_H

@@ -1,5 +1,6 @@
 //
-// Created by franek on 31.05.17.
+// Semantic analyzer source file
+// Wiktor Franus, WUT 2017
 //
 
 #include "SemanticAnalyzer.h"

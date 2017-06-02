@@ -1,5 +1,6 @@
 //
-// Created by franek on 01.06.17.
+// Representation of AST nodes using visitor pattern
+// Wiktor Franus, WUT 2017
 //
 
 #ifndef FRACTUS_AST_H
@@ -120,7 +121,6 @@ struct VarNode : public Node {
     VarNode(const std::string &n) : name(n) {}
     void accept(Visitor &v) const;
 
-    //Token token;
     std::string name;
 };
 
