@@ -29,7 +29,7 @@ program test;
             c = 1;
             while (c < 4) do
                 begin
-                    #print(c);
+                    print(c);
                     c = c + 1;
                     c = c
                 end
@@ -44,7 +44,7 @@ program test;
             print("Podaj ułamek: ");
             read(f);    # read fraction from stdin
             r = z/f + a*b;
-            if(r >= 0) then
+            if(r >= 0.0_1) then
                 r = r;
             CountToThree();
             return true
@@ -55,9 +55,8 @@ begin
     flag = false;
     if(!flag and (c==0)) then
         begin
-            x = DummyFun(1.1_2, 3_5);
-            x = x;
-            x = c
+            x = !DummyFun(1.1_2, 3_5);
+            x = x
         end
     else
         begin

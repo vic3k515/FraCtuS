@@ -66,6 +66,9 @@ Token Scanner::nextSymbol() {
                         c = source->nextChar();
                         readInt(f.denominator);
                         lastFraction = f;
+                        if (f.denominator == 0) {
+                            ScanError("Mianownik musi być różny od 0!");
+                        }
                         return FRACTCONST;
                     } else {
                         ScanError("Bledna stala ulamkowa: brak symbolu '_'");

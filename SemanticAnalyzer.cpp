@@ -7,6 +7,7 @@
 
 SemanticAnalyzer::SemanticAnalyzer()
 : currentScope(nullptr)
+, prototypes(new std::map<std::string, Scope*>)
 {}
 
 void SemanticAnalyzer::visit(const BlockNode *n) {
@@ -26,6 +27,7 @@ void SemanticAnalyzer::visit(const ProgramNode *n) {
     std::cout << "ENTER scope: global" << std::endl;
     Scope* global_scope = new Scope("global", 1, currentScope);
     global_scope->initializeBuiltInTypes();
+    prototypes->insert(std::make_pair(global_scope->getScopeName(), global_scope));
 
     currentScope = global_scope;
 
@@ -57,6 +59,11 @@ void SemanticAnalyzer::visit(const BinOpNode *n) {
     n->right->accept(*this);
 }
 
+void SemanticAnalyzer::visit(const LogicalOp *n) {
+    n->left->accept(*this);
+    n->right->accept(*this);
+}
+
 void SemanticAnalyzer::visit(const ProcDeclNode *n) {
     std::string procName = n->name;
     std::string retType = n->returnType->typeName;
@@ -66,6 +73,8 @@ void SemanticAnalyzer::visit(const ProcDeclNode *n) {
 
     std::cout << "ENTER scope: " << procName << std::endl;
     Scope* procScope = new Scope(procName, currentScope->getLevel() + 1, currentScope);
+    prototypes->insert(std::make_pair(procName, procScope));
+
     currentScope = procScope;
 
     for (ParamNode* param : n->params) {
@@ -147,4 +156,8 @@ void SemanticAnalyzer::visit(const ProcCallNode *n) {
         errMsg += std::to_string(procArgsNum) + ", but got: " + std::to_string(procCallArgsNum);
         throw ParseException(errMsg);
     }
+}
+
+std::map<std::string, Scope *> *SemanticAnalyzer::getPrototypes() const {
+    return prototypes;
 }

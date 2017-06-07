@@ -9,10 +9,12 @@
 #include <vector>
 
 #include "Scanner.h"
+#include "Scope.h"
 
+// forward declarations
 class Visitor;
+class Interpreter;
 
-// forward deckarations
 struct VarDeclNode;
 struct ProcDeclNode;
 struct BlockNode;
@@ -22,20 +24,14 @@ struct VarNode;
 struct Node {
     virtual ~Node() {}
     virtual void accept(Visitor &v) const = 0;
-};
-
-struct BinOpNode : public Node {
-    BinOpNode(Node *l, Token op, Node *r) : left(l), op(op), right(r) {}
-    void accept(Visitor &v) const;
-
-    Node *left;
-    Token op;
-    Node *right;
+    virtual ValType evaluate(Interpreter *interpreter);
+    //virtual ValType evaluate(Interpreter *interpreter);
 };
 
 struct NumNode : public Node {
     NumNode(Token t) : token(t) {}
     void accept(Visitor &v) {}
+    virtual ValType evaluate(Interpreter *interpreter) {};
 
     Token token;
 };
@@ -43,6 +39,7 @@ struct NumNode : public Node {
 struct IntNode : public NumNode {
     IntNode(Token t, int v) : NumNode(t), value(v) {}
     void accept(Visitor &v) const;
+    ValType evaluate(Interpreter *interpreter);
 
     int value;
 };
@@ -50,6 +47,7 @@ struct IntNode : public NumNode {
 struct FractNode : public NumNode {
     FractNode(Token t, Fraction v) : NumNode(t), value(v) {}
     void accept(Visitor &v) const;
+    ValType evaluate(Interpreter *interpreter);
 
     Fraction value;
 };
@@ -57,6 +55,7 @@ struct FractNode : public NumNode {
 struct BoolNode : public NumNode {
     BoolNode(Token t, bool v) : NumNode(t), value(v) {}
     void accept(Visitor &v) const;
+    ValType evaluate(Interpreter *interpreter);
 
     bool value;
 };
@@ -64,13 +63,31 @@ struct BoolNode : public NumNode {
 struct StringNode : public NumNode {
     StringNode(Token t, const std::string &v) : NumNode(t), value(v) {}
     void accept(Visitor &v) const;
+    ValType evaluate(Interpreter *interpreter);
 
     std::string value;
+};
+
+struct BinOpNode : public Node {
+    BinOpNode(Node *l, Token op, Node *r) : left(l), op(op), right(r) {}
+    void accept(Visitor &v) const;
+    ValType evaluate(Interpreter *interpreter);
+
+    Node *left;
+    Token op;
+    Node *right;
+};
+
+struct LogicalOp : public BinOpNode {
+    LogicalOp(Node *l, Token op, Node *r) : BinOpNode(l, op, r) {}
+    void accept(Visitor &v) const;
+    ValType evaluate(Interpreter *interpreter);
 };
 
 struct UnaryOpNode : public Node {
     UnaryOpNode(Token op, Node* ex) : op(op), expression(ex) {}
     void accept(Visitor &v) const;
+    ValType evaluate(Interpreter *interpreter);
 
     Token op;
     Node *expression;
@@ -79,6 +96,7 @@ struct UnaryOpNode : public Node {
 struct CompoundNode : public Node {
     CompoundNode() {}
     void accept(Visitor &v) const;
+    ValType evaluate(Interpreter *interpreter);
 
     std::vector<Node*> children;
 };
@@ -86,6 +104,7 @@ struct CompoundNode : public Node {
 struct AssignNode : public Node {
     AssignNode(VarNode *l, Node *r) : left(l), right(r) {}
     void accept(Visitor &v) const;
+    ValType evaluate(Interpreter *interpreter);
 
     VarNode *left;
     Node *right;
@@ -95,6 +114,7 @@ struct IfNode : public Node {
     IfNode(Node *c, Node *t, Node *e)
             : condition(c), thenNode(t), elseNode(e) {}
     void accept(Visitor &v) const;
+    ValType evaluate(Interpreter *interpreter);
 
     Node *condition;
     Node *thenNode;
@@ -105,6 +125,7 @@ struct WhileNode : public Node {
     WhileNode(Node *c, Node *s)
             : condition(c), statement(s) {}
     void accept(Visitor &v) const;
+    ValType evaluate(Interpreter *interpreter);
 
     Node *condition;
     Node *statement;
@@ -113,6 +134,7 @@ struct WhileNode : public Node {
 struct ReturnNode : public Node {
     ReturnNode(Node *e) : expr(e) {}
     void accept(Visitor &v) const;
+    ValType evaluate(Interpreter *interpreter);
 
     Node *expr;
 };
@@ -120,6 +142,7 @@ struct ReturnNode : public Node {
 struct VarNode : public Node {
     VarNode(const std::string &n) : name(n) {}
     void accept(Visitor &v) const;
+    ValType evaluate(Interpreter *interpreter);
 
     std::string name;
 };
@@ -132,6 +155,7 @@ struct VarNode : public Node {
 struct ProgramNode : public Node {
     ProgramNode(const std::string &n, BlockNode* b) : name(n), block(b) {}
     void accept(Visitor &v) const;
+    ValType evaluate(Interpreter *interpreter);
 
     std::string name;
     BlockNode *block;
@@ -141,6 +165,7 @@ struct BlockNode : public Node {
     BlockNode(std::vector<VarDeclNode*> &vd, std::vector<ProcDeclNode*> &pd, CompoundNode* cS)
             : varDeclarations(vd), procDeclarations(pd), compundStatement(cS) {}
     void accept(Visitor &v) const;
+    ValType evaluate(Interpreter *interpreter);
 
     std::vector<VarDeclNode*> varDeclarations;
     std::vector<ProcDeclNode*> procDeclarations;
@@ -158,6 +183,7 @@ struct VarDeclNode : public Node {
 struct TypeNode : public Node {
     TypeNode(const std::string &tn) : typeName(tn) {}
     void accept(Visitor &v) const;
+    ValType evaluate(Interpreter *interpreter);
 
     std::string typeName;
 };
@@ -165,6 +191,7 @@ struct TypeNode : public Node {
 struct ParamNode : public Node {
     ParamNode(VarNode* vn, TypeNode* tn) : varNode(vn), typeNode(tn) {}
     void accept(Visitor &v) const;
+    ValType evaluate(Interpreter *interpreter);
 
     VarNode *varNode;
     TypeNode *typeNode;
@@ -184,6 +211,7 @@ struct ProcDeclNode : public Node {
 struct ProcCallNode : public Node {
     ProcCallNode(VarNode *vn, std::vector<Node*> a) : proc(vn), arguments(a) {}
     void accept(Visitor &v) const;
+    ValType evaluate(Interpreter *interpreter);
 
     VarNode *proc;
     std::vector<Node*> arguments;
@@ -192,6 +220,7 @@ struct ProcCallNode : public Node {
 class Visitor {
 public:
     virtual void visit(const BinOpNode *n) = 0;
+    virtual void visit(const LogicalOp *n) = 0;
     virtual void visit(const NumNode *n) = 0;
     virtual void visit(const UnaryOpNode *n) = 0;
     virtual void visit(const CompoundNode *n) = 0;
@@ -200,7 +229,6 @@ public:
     virtual void visit(const WhileNode *n) = 0;
     virtual void visit(const ReturnNode *n) = 0;
     virtual void visit(const VarNode *n) = 0;
-    //virtual void visit(const NoOpNode *n) = 0;
     virtual void visit(const ProgramNode *n) = 0;
     virtual void visit(const BlockNode *n) = 0;
     virtual void visit(const VarDeclNode *n) = 0;

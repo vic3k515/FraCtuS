@@ -327,7 +327,11 @@ Node* Parser::expression() {
     if (has(relOp, symbol)) {
         Token op = symbol;
         accept(relOp);
-        node = new BinOpNode(node, op, simpleExpression());
+        if (op == ANDOP || op == OROP) {
+            node = new LogicalOp(node, op, simpleExpression());
+        } else {
+            node = new BinOpNode(node, op, simpleExpression());
+        }
     }
     return node;
 }
@@ -408,7 +412,7 @@ Node* Parser::factor() {
             break;
         case NOTSIGN:
             accept(NOTSIGN);
-            node = factor(); // TODO: treat '!' somehow
+            node = new UnaryOpNode(NOTSIGN, factor());
             break;
     }
     return node;

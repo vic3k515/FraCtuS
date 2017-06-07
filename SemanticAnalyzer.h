@@ -7,17 +7,19 @@
 #define FRACTUS_SEMANTICANALYZER_H
 
 #include "Ast.h"
-#include "Scope.h"
+//#include "Scope.h"
 #include "Parser.h" //ParseException
 
 class SemanticAnalyzer : public Visitor {
 public:
+    using Prototypes = std::map<std::string, Scope*>;
     SemanticAnalyzer();
     ~SemanticAnalyzer() {};
 
-    Scope* currentScope ;
+    std::map<std::string, Scope*> *getPrototypes() const;
 
     void visit(const BinOpNode *n);
+    void visit(const LogicalOp *n);
     void visit(const NumNode *n) {}
     void visit(const UnaryOpNode *n) {}
     void visit(const CompoundNode *n);
@@ -34,6 +36,10 @@ public:
     void visit(const ParamNode *n);
     void visit(const ProcDeclNode *n);
     void visit(const ProcCallNode *n);
+
+private:
+    Scope *currentScope ;
+    Prototypes *prototypes;
 };
 
 #endif //FRACTUS_SEMANTICANALYZER_H

@@ -7,11 +7,11 @@ program test;
             if (n<3) then
                 return 1;
 
-            tmp = Fibonacci(n - 2) + Fibonacci(n - 1);
-            return tmp
+            return Fibonacci(n - 2) + Fibonacci(n - 1)
         end;
 
     begin
         read(n);
+        print("Wynik: ");
         Fibonacci(n)
     end.

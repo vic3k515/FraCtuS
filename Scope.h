@@ -11,19 +11,26 @@
 #include <set>
 #include <vector>
 #include <unordered_map>
+#include <map>
 #include <functional>
+
+#include "Fraction.h"
 
 class DescVisitor;
 
+enum class DescType {
+    BuiltInType,
+    Var,
+    Proc
+};
+
 struct Descriptor {
-    Descriptor(const std::string &name, const std::string &type = std::string(""));
+    Descriptor(const std::string &name, DescType type = DescType::Var);
     virtual ~Descriptor() {}
     virtual void accept(DescVisitor &v) const = 0;
 
     std::string name;
-    std::string type;
-
-    //bool operator==(const Descriptor &oth) const;
+    DescType type;
 };
 
 struct BuiltInTypeDescriptor : public Descriptor {
@@ -46,6 +53,7 @@ struct ProcDescriptor : public Descriptor {
     ~ProcDescriptor() {}
     void accept(DescVisitor &v) const;
 
+    std::string retType;
     std::vector<VarDescriptor*> params;
 };
 
@@ -72,22 +80,19 @@ private:
     std::ostream& stream;
 };
 
-struct DescriptorPtrEq {
-    bool operator () ( Descriptor const * lhs, Descriptor const * rhs ) const {
-        return lhs->name == rhs->name
-               && lhs->type == rhs->type;
-    }
-};
 
 class Scope {
+    using Symbols = std::unordered_map<std::string, Descriptor*>;
 public:
     Scope(const std::string& name, unsigned int level, Scope *extscope);
-    ~Scope();
+    ~Scope() {}
     Descriptor *insert(Descriptor *symbol);
     Descriptor *lookup(const std::string &name, bool currentScopeOnly = false);
     void initializeBuiltInTypes();
-    Scope *getEnclosingScope() const;
+    const std::string &getScopeName() const;
     unsigned int getLevel() const;
+    Scope *getEnclosingScope() const;
+    Symbols const &getSymbolTable() const;
 
     friend std::ostream& operator<<(std::ostream& os, const Scope& obj);
 
@@ -95,7 +100,58 @@ private:
     std::string scopeName;
     unsigned int level;
     Scope *enclosingScope;
-    std::unordered_map<std::string, Descriptor*> symbols;
+    Symbols symbols;
+};
+
+struct Value {
+    bool boolVal;
+    int intVal;
+    std::string stringVal;
+    Fraction fractVal;
+};
+
+enum class Type {
+    Bool,
+    Int,
+    String,
+    Fraction,
+    Void
+};
+
+using ValType = std::pair<Value, Type>;
+
+ValType operator+(const ValType &left, const ValType &right);
+ValType operator-(const ValType &left, const ValType &right);
+ValType operator*(const ValType &left, const ValType &right);
+ValType operator/(const ValType &left, const ValType &right);
+bool operator==(const ValType &left, const ValType &right);
+bool operator!=(const ValType &left, const ValType &right);
+bool operator<(const ValType &left, const ValType &right);
+bool operator>(const ValType &left, const ValType &right);
+bool operator<=(const ValType &left, const ValType &right);
+bool operator>=(const ValType &left, const ValType &right);
+std::ostream& operator<<(std::ostream &os, const ValType &obj);
+std::istream& operator>>(std::istream &is, ValType &obj);
+
+
+class Context {
+    using Environment = std::map<std::string, ValType>;
+
+public:
+    Context(Scope *contextScope, Context *globalContext);
+    Context(Context &&oth);
+    Descriptor *getVariableDescriptor(const std::string &name);
+    ValType &getVariableValue(const std::string &varName);
+    void setVariableValue(const std::string &varName, const Value &value);
+    ValType &getReturnValue();
+    void setReturnValue(const ValType &val);
+
+private:
+    void initializeVariables();
+    Scope *contextScope;
+    Context *globalContext;
+    Environment environment;
+    ValType returnValue;
 };
 
 #endif //FRACTUS_SCOPE_H

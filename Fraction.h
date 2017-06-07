@@ -7,6 +7,7 @@
 #define FRACTUS_FRACTION_H
 
 #include <iostream>
+#include <utility>
 
 class Fraction {
 public:
@@ -18,7 +19,21 @@ public:
     ~Fraction();
 
     friend std::ostream& operator<<(std::ostream& os, const Fraction& obj);
+    friend std::istream& operator>>(std::istream& in, Fraction& obj);
 };
 
+bool operator==(const Fraction &left, const Fraction &right);
+bool operator!=(const Fraction &left, const Fraction &right);
+bool operator<(const Fraction &left, const Fraction &right);
+bool operator>(const Fraction &left, const Fraction &right);
+bool operator<=(const Fraction &left, const Fraction &right);
+bool operator>=(const Fraction &left, const Fraction &right);
+Fraction operator+(const Fraction &left, const Fraction &right);
+Fraction operator-(const Fraction &left, const Fraction &right);
+Fraction operator*(const Fraction &left, const Fraction &right);
+Fraction operator/(const Fraction &left, const Fraction &right);
+
+void convertToCommonDenominator(Fraction &l, Fraction &r);
+int mostCommonMultiple(int a, int b);
 
 #endif //FRACTUS_FRACTION_H

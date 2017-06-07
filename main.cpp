@@ -3,6 +3,7 @@
 #include "Scanner.h"
 #include "Parser.h"
 #include "SemanticAnalyzer.h"
+#include "Interpreter.h"
 
 std::map<Token, std::string> mappings = {
     {PROGRAM,     "PROGRAM"},
@@ -56,9 +57,9 @@ int main(int argc, char *argv[]) {
         std::cout << "Nie podano nazwy pliku wejsciowego" << std::endl;
         return 0;
     }
-    Reader *reader = new Reader(argv[1]);
-    Scanner *scanner = new Scanner(reader);
-    Parser parser(*scanner);
+    Reader reader(argv[1]);
+    Scanner scanner(&reader);
+    Parser parser(scanner);
     SemanticAnalyzer semAnalyzer;
 
 
@@ -85,24 +86,35 @@ int main(int argc, char *argv[]) {
                   << ": "
                   << mappings[parser.getCurrSymbol()]
                   << " in line: "
-                  << scanner->getLine()
+                  << scanner.getLine()
                   << std::endl;
 
-        if (scanner->getCurrentSymbol() == IDENTIFIER) {
-            std::cout << scanner->getLastString() << std::endl;
+        if (scanner.getCurrentSymbol() == IDENTIFIER) {
+            std::cout << scanner.getLastString() << std::endl;
         }
     }
 
     if (tree) {
         try {
             semAnalyzer.visit(tree);
-            std::cout << "*** No semantic errors ***" << std::endl;
+            std::cout << "*** No semantic errors ***\n" << std::endl;
+            for (auto pair : *semAnalyzer.getPrototypes()) {
+                std::cout << pair.first << ": " << pair.second->getScopeName() << std::endl;
+            }
+//            for(auto elem : semAnalyzer.prototypes)
+//            {
+//                std::cout << elem.first << " " << elem.second->getScopeName() << "\n";
+//            }
         } catch (ParseException e) {
             std::cout << e.what() << std::endl;
         }
     }
+    Interpreter interpreter(semAnalyzer.getPrototypes(), tree);
+    try {
+        interpreter.interpret();
+    } catch (std::runtime_error e) {
+        std::cout<< e.what() << std::endl;
+    }
 
-    delete reader;
-    delete scanner;
     return 0;
 }
