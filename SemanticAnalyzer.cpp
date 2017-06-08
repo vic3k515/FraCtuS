@@ -24,7 +24,7 @@ void SemanticAnalyzer::visit(const BlockNode *n) {
 }
 
 void SemanticAnalyzer::visit(const ProgramNode *n) {
-    std::cout << "ENTER scope: global" << std::endl;
+    //std::cout << "ENTER scope: global" << std::endl;
     Scope* global_scope = new Scope("global", 1, currentScope);
     global_scope->initializeBuiltInTypes();
     prototypes->insert(std::make_pair(global_scope->getScopeName(), global_scope));
@@ -36,7 +36,7 @@ void SemanticAnalyzer::visit(const ProgramNode *n) {
     std::cout << *global_scope << std::endl;
 
     currentScope = currentScope->getEnclosingScope();
-    std::cout << "LEAVE scope: global" << std::endl;
+    //std::cout << "LEAVE scope: global" << std::endl;
 }
 
 void SemanticAnalyzer::visit(const CompoundNode *n) {
@@ -71,7 +71,7 @@ void SemanticAnalyzer::visit(const ProcDeclNode *n) {
     ProcDescriptor* procDesc = new ProcDescriptor(procName, retType, params);
     currentScope->insert(procDesc);
 
-    std::cout << "ENTER scope: " << procName << std::endl;
+    //std::cout << "ENTER scope: " << procName << std::endl;
     Scope* procScope = new Scope(procName, currentScope->getLevel() + 1, currentScope);
     prototypes->insert(std::make_pair(procName, procScope));
 
@@ -91,7 +91,7 @@ void SemanticAnalyzer::visit(const ProcDeclNode *n) {
     std::cout << *procScope << std::endl;
 
     currentScope = currentScope->getEnclosingScope();
-    std::cout << "LEAVE scope: " << procName << std::endl;
+    //std::cout << "LEAVE scope: " << procName << std::endl;
 }
 
 void SemanticAnalyzer::visit(const IfNode *n) {

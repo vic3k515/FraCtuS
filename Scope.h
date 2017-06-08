@@ -104,6 +104,11 @@ private:
 };
 
 struct Value {
+    Value();
+    Value(const Value &oth);
+    Value(Value &&oth);
+    Value &operator=(const Value &oth);
+
     bool boolVal;
     int intVal;
     std::string stringVal;
@@ -111,11 +116,11 @@ struct Value {
 };
 
 enum class Type {
+    Void,
     Bool,
     Int,
     String,
-    Fraction,
-    Void
+    Fraction
 };
 
 using ValType = std::pair<Value, Type>;
@@ -143,7 +148,7 @@ public:
     Descriptor *getVariableDescriptor(const std::string &name);
     ValType &getVariableValue(const std::string &varName);
     void setVariableValue(const std::string &varName, const Value &value);
-    ValType &getReturnValue();
+    ValType getReturnValue();
     void setReturnValue(const ValType &val);
 
 private:

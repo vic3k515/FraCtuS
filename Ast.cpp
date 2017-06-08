@@ -100,7 +100,7 @@ void ParamNode::accept(Visitor &v) const {
  */
 
 ValType Node::evaluate(Interpreter *interpreter) {
-    std::make_pair(Value(), Type::Void);
+    return std::make_pair(Value(), Type::Void);
 }
 
 ValType IntNode::evaluate(Interpreter *interpreter) {
@@ -216,8 +216,16 @@ ValType UnaryOpNode::evaluate(Interpreter *interpreter) {
 
 ValType CompoundNode::evaluate(Interpreter *interpreter) {
     ValType res;
+    ValType prevRetVal = interpreter->currContext().getReturnValue();
     for (auto node : children) {
         res = node->evaluate(interpreter);
+        //std::cout <<"sep"<< std::endl;
+        ValType currRetVal = interpreter->currContext().getReturnValue();
+        if ((prevRetVal.second == Type::Void && currRetVal.second != Type::Void)
+            || (prevRetVal != currRetVal)) {
+            //std::cout << "RETURN" << std::endl;
+            break;
+        }
     }
     return res;
 }
@@ -246,11 +254,13 @@ ValType AssignNode::evaluate(Interpreter *interpreter) {
 }
 
 ValType IfNode::evaluate(Interpreter *interpreter) {
-    if (interpreter->isTruthy(condition->evaluate(interpreter))) {
+    ValType cond = condition->evaluate(interpreter);
+    if (interpreter->isTruthy(cond)) {
         return thenNode->evaluate(interpreter);
     } else if (elseNode){
         return elseNode->evaluate(interpreter);
     }
+    return cond;
 }
 
 ValType WhileNode::evaluate(Interpreter *interpreter) {
@@ -264,6 +274,7 @@ ValType WhileNode::evaluate(Interpreter *interpreter) {
 ValType ReturnNode::evaluate(Interpreter *interpreter) {
     ValType retVal = expr->evaluate(interpreter);
     interpreter->currContext().setReturnValue(retVal);
+    //std::cout << "New return value set!" << std::endl;
     return retVal;
 }
 
@@ -309,7 +320,7 @@ ValType ProcCallNode::evaluate(Interpreter *interpreter) {
         return print(this, interpreter);
     } else if (procDesc->name == "read") {
         return read(this, interpreter);
-    }
+    };
 
     if (arguments.size() != procDesc->params.size()) {
         std::runtime_error("Incorrect number of parameters: " + proc->name);
@@ -330,7 +341,7 @@ ValType ProcCallNode::evaluate(Interpreter *interpreter) {
     BlockNode *procBody = interpreter->getProcNodes(procDesc->name)->blockNode;
     procBody->evaluate(interpreter);
 
-    ValType &retVal = interpreter->currContext().getReturnValue();
+    ValType retVal = interpreter->currContext().getReturnValue();
 
     if (interpreter->typeNames[retVal.second] != procDesc->retType) {
         std::runtime_error("Incorrect procedure return type. Expected: " + procDesc->retType +
@@ -342,12 +353,16 @@ ValType ProcCallNode::evaluate(Interpreter *interpreter) {
 }
 
 ValType print(ProcCallNode *node, Interpreter *interpreter) {
-    std::cout << node->arguments[0]->evaluate(interpreter);
+    std::cout << node->arguments[0]->evaluate(interpreter) << std::endl;
     return std::make_pair(Value(), Type::Void);
 }
 
 ValType read(ProcCallNode *node, Interpreter *interpreter) {
-    auto valType = node->arguments[0]->evaluate(interpreter);
-    std::cin >> valType;
+    //auto valType = node->arguments[0]->evaluate(interpreter);
+    VarNode *varNode = static_cast<VarNode*>(node->arguments[0]);
+    ValType &val = interpreter->currContext().getVariableValue(varNode->name);
+    std::cin >> val;
+    //interpreter->currContext().setVariableValue(procDesc->params[i]->name, val.first);
+    //std::cout << "Wczytano : " << val << std::endl;
     return std::make_pair(Value(), Type::Void);
 }

@@ -58,6 +58,11 @@ enum Token {
     OTHERS
 };
 
+class ScannerException : public std::runtime_error {
+public:
+    ScannerException(std::string msg) : runtime_error(msg) {};
+};
+
 class Scanner {
 public:
     std::map<std::string, Token> KeyWords = {
@@ -85,23 +90,23 @@ public:
 
     Token nextSymbol();
 
-    std::string getLastString() {
+    std::string getLastString() const {
         return lastString;
     }
 
-    int getLine() {
+    int getLine() const {
         return source->getLine();
     }
 
-    int getLastNumber() {
+    int getLastNumber() const {
         return lastNumber;
     }
 
-    Fraction getLastFraction() {
+    Fraction getLastFraction() const {
         return lastFraction;
     }
 
-    char getCurrentSymbol() {
+    char getCurrentSymbol() const {
         return c;
     }
 
@@ -109,9 +114,9 @@ public:
         return errorOccurred;
     }
 
-    void ScanError(const char *mtxt="", const char *atxt="") {
-        std::cout << "Lexical error in line: " + std::to_string(getLine()) + " " + mtxt << std::endl;
+    void ScanError(const std::string &mtxt="", const std::string &atxt="") {
         errorOccurred = true;
+        throw ScannerException("Lexical error : " + mtxt);
     }
 private:
     bool readInt(int& num);

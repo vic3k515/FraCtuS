@@ -41,7 +41,11 @@ bool Parser::has(const SymSet &sset, const Token &tkn) {
 }
 
 void Parser::nextSymbol() {
-    symbol = scanner.nextSymbol();
+    try {
+        symbol = scanner.nextSymbol();
+    } catch (const ScannerException &e) {
+        throw e;
+    }
 }
 
 ProgramNode* Parser::parse() {

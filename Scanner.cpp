@@ -67,15 +67,15 @@ Token Scanner::nextSymbol() {
                         readInt(f.denominator);
                         lastFraction = f;
                         if (f.denominator == 0) {
-                            ScanError("Mianownik musi być różny od 0!");
+                            ScanError("Denominator has to be different than 0!");
                         }
                         return FRACTCONST;
                     } else {
-                        ScanError("Bledna stala ulamkowa: brak symbolu '_'");
+                        ScanError("Invalid fraction constant: no symbol '_'");
                         return INTCONST;
                     }
                 } else {
-                    ScanError("Bledna stala ulamkowa: brak liczby po znaku '.'");
+                    ScanError("Invalid integer constant: no number after '.'");
                     return INTCONST;
                 }
             } else if (c == '_'){
@@ -99,7 +99,7 @@ Token Scanner::nextSymbol() {
         c = source->nextChar();
         if (c == '"') {
             c = source->nextChar();
-            if (c != '"') ScanError("Bledna stala znakowa: za dużo znaków '\"'");
+            if (c != '"') ScanError("Invalid char constant: too many quotes");
             return CHARCONST;
         }
 
@@ -110,7 +110,7 @@ Token Scanner::nextSymbol() {
 
         c = source->nextChar();
         if (c == '"') {
-            ScanError("Bledna stala znakowa: za dużo znaków '\"'");
+            ScanError("Invalid char constant: too many quotes");
             c = source->nextChar();
         }
         isCharPreloaded = true;
@@ -200,7 +200,7 @@ bool Scanner::readInt(int &num) {
 
     num = (int) ul;
     if (big) {
-        ScanError("Przekroczony zakres stalej calkowitej");
+        ScanError("Integer overflow");
         return false;
     }
     return true;

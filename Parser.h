@@ -22,7 +22,7 @@ public:
 
     Parser(Scanner &scanner);
     ProgramNode* parse();
-    Token getCurrSymbol() {
+    Token getCurrSymbol() const {
         return symbol;
     }
 

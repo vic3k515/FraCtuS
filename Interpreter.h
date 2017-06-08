@@ -30,23 +30,6 @@ public:
     void createNewContextFrame(const std::string &procName);
     void popContextFrame();
 
-//    void visit(const BinOpNode *n);
-//    void visit(const NumNode *n) {}
-//    void visit(const UnaryOpNode *n) {}
-//    void visit(const CompoundNode *n);
-//    void visit(const AssignNode *n);
-//    void visit(const IfNode *n);
-//    void visit(const WhileNode *n);
-//    void visit(const ReturnNode *n);
-//    void visit(const VarNode *n);
-//    //void visit(const NoOpNode *n) {}
-//    void visit(const ProgramNode *n);
-//    void visit(const BlockNode *n);
-//    void visit(const VarDeclNode *n);
-//    void visit(const TypeNode *n);
-//    void visit(const ParamNode *n);
-//    void visit(const ProcDeclNode *n);
-//    void visit(const ProcCallNode *n);
 
     bool isTruthy(const ValType &v);
     void checkNumberOperand(const ValType &operand);

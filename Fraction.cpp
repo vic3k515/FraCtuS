@@ -14,7 +14,10 @@ Fraction::Fraction()
 Fraction::~Fraction() {}
 
 std::ostream& operator<<(std::ostream& os, const Fraction& obj) {
-    os << obj.whole << "." << obj.numerator << "_" << obj.denominator;
+    if (obj.whole) {
+        os << obj.whole << ".";
+    }
+    os << obj.numerator << "_" << obj.denominator;
     return os;
 }
 
@@ -26,8 +29,12 @@ std::istream& operator>>(std::istream& in, Fraction& obj) {
         obj.whole = stoi(s.substr(0, periodPos));
     }
     if ((sepPos = s.find('_')) != std::string::npos) {
-        obj.numerator = stoi(s.substr(periodPos + 1, sepPos - periodPos - 1));
-        obj.denominator = stoi(s.substr((sepPos + 1, s.length() - sepPos - 2)));
+        if (periodPos == std::string::npos) {
+            obj.numerator = stoi(s.substr(0, sepPos));
+        } else {
+            obj.numerator = stoi(s.substr(periodPos + 1, sepPos - periodPos - 1));
+        }
+        obj.denominator = stoi(s.substr(sepPos + 1, s.length() - sepPos - 1));
     }
     return in;
 }

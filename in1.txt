@@ -26,6 +26,7 @@ program test;
 
     void CountToThree();
         begin
+            print("Liczę do trzech: ");
             c = 1;
             while (c < 4) do
                 begin
@@ -37,30 +38,31 @@ program test;
 
     boolean DummyFun(fraction z, fraction f);
         var r: fraction;
-
         begin
             a = 1_2;
             b = a + 1_3;
-            print("Podaj ułamek: ");
-            read(f);    # read fraction from stdin
-            r = z/f + a*b;
+            print("Podaj ułamek (np. 1.1_2): ");
+            read(r);    # read fraction from stdin
+            r = z/f + a*b + r;
             if(r >= 0.0_1) then
-                r = r;
+                print(r);
             CountToThree();
             return true
         end;
 begin
     PrintString("Podaj liczbę całkowitą: ");
     read(c);
+    print("Wpisana liczba to ");
+    print(c);
     flag = false;
     if(!flag and (c==0)) then
         begin
-            x = !DummyFun(1.1_2, 3_5);
+            x = DummyFun(1.1_2, 3_5);
             x = x
         end
     else
         begin
             CountToThree();
-            x=0
+            x=false
         end
 end.

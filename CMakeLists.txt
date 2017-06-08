@@ -13,6 +13,7 @@ set(SOURCE_FILES
     Scope.cpp
     Parser.cpp
     SemanticAnalyzer.cpp
+    Interpreter.cpp
     main.cpp
 )
 

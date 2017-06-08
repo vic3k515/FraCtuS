@@ -46,64 +46,7 @@ void Interpreter::popContextFrame() {
     contextStack.pop();
 }
 
-//
-//void Interpreter::visit(const BinOpNode *n) {
-//
-//}
-//
-//void Interpreter::visit(const CompoundNode *n) {
-//    for (auto stmt : n->children) {
-//        stmt->accept(*this);
-//    }
-//}
-//
-//void Interpreter::visit(const AssignNode *n) {
-//
-//}
-//
-//void Interpreter::visit(const IfNode *n) {
-//
-//}
-//
-//void Interpreter::visit(const WhileNode *n) {
-//
-//}
-//
-//void Interpreter::visit(const ReturnNode *n) {
-//
-//}
-//
-//void Interpreter::visit(const VarNode *n) {
-//
-//}
-//
-//void Interpreter::visit(const ProgramNode *n) {
-//    n->block->accept(*this);
-//}
-//
-//void Interpreter::visit(const BlockNode *n) {
-//    n->compundStatement->accept(*this);
-//}
-//
-//void Interpreter::visit(const VarDeclNode *n) {
-//
-//}
-//
-//void Interpreter::visit(const TypeNode *n) {
-//
-//}
-//
-//void Interpreter::visit(const ParamNode *n) {
-//
-//}
-//
-//void Interpreter::visit(const ProcDeclNode *n) {
-//    //
-//}
-//
-//void Interpreter::visit(const ProcCallNode *n) {
-//
-//}
+
 
 void Interpreter::checkNumberOperand(const ValType &operand) {
     if (operand.second == Type::Int || operand.second == Type::Fraction) {

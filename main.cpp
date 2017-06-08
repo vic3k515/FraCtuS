@@ -52,6 +52,9 @@ std::map<Token, std::string> mappings = {
     {OTHERS,      "OTHERS"}
 };
 
+void printErrorLine(const Scanner &scanner);
+void printExceptionInfo(const Scanner &scanner, const Parser &parser);
+
 int main(int argc, char *argv[]) {
     if (argc < 2) {
         std::cout << "Nie podano nazwy pliku wejsciowego" << std::endl;
@@ -61,54 +64,37 @@ int main(int argc, char *argv[]) {
     Scanner scanner(&reader);
     Parser parser(scanner);
     SemanticAnalyzer semAnalyzer;
-
-
-//    Token t;
-//    while (!(scanner->errorOccured()) && ((t = scanner->nextSymbol()) != END_OF_FILE)) {
-//        std::cout << mappings[t];
-//        if (t == FRACTCONST) {
-//            std::cout << ": " << scanner->getLastFraction();
-//        }
-//        if (t == IDENTIFIER || t == CHARCONST) {
-//            std::cout << ": " << scanner->getLastString();
-//        }
-//        if (t == INTCONST) {
-//            std::cout << ": " << scanner->getLastNumber();
-//        }
-//        std::cout << std::endl;
-//    }
+    
     ProgramNode *tree = nullptr;
     try {
         tree = parser.parse();
+        std::cout << "*** No lexical errors ***\n" << std::endl;
         std::cout << "*** No syntax errors ***\n" << std::endl;
+    } catch (ScannerException e) {
+        std::cout << e.what();
+        printErrorLine(scanner);
+        return 0;
     } catch (ParseException e) {
-        std::cout << e.what()
-                  << ": "
-                  << mappings[parser.getCurrSymbol()]
-                  << " in line: "
-                  << scanner.getLine()
-                  << std::endl;
+        std::cout << e.what();
+        printExceptionInfo(scanner, parser);
 
         if (scanner.getCurrentSymbol() == IDENTIFIER) {
             std::cout << scanner.getLastString() << std::endl;
         }
+        return 0;
     }
 
     if (tree) {
         try {
             semAnalyzer.visit(tree);
             std::cout << "*** No semantic errors ***\n" << std::endl;
-            for (auto pair : *semAnalyzer.getPrototypes()) {
-                std::cout << pair.first << ": " << pair.second->getScopeName() << std::endl;
-            }
-//            for(auto elem : semAnalyzer.prototypes)
-//            {
-//                std::cout << elem.first << " " << elem.second->getScopeName() << "\n";
-//            }
         } catch (ParseException e) {
             std::cout << e.what() << std::endl;
+            return 0;
         }
     }
+    std::cout << "***********************" << std::endl;
+    std::cout << "Interpreting...\n" << std::endl;
     Interpreter interpreter(semAnalyzer.getPrototypes(), tree);
     try {
         interpreter.interpret();
@@ -117,4 +103,17 @@ int main(int argc, char *argv[]) {
     }
 
     return 0;
+}
+
+void printErrorLine(const Scanner &scanner) {
+    std::cout << " in line: " << scanner.getLine() << std::endl;
+}
+
+void printExceptionInfo(const Scanner &scanner, const Parser &parser) {
+    std::cout << ": " << mappings[parser.getCurrSymbol()];
+    printErrorLine(scanner);
+
+    if (scanner.getCurrentSymbol() == IDENTIFIER) {
+        std::cout << scanner.getLastString() << std::endl;
+    }
 }

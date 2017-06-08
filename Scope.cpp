@@ -184,6 +184,39 @@ Scope::Symbols const &Scope::getSymbolTable() const {
     return symbols;
 }
 
+
+Value::Value()
+: boolVal(false)
+, intVal(0)
+, stringVal("")
+, fractVal(Fraction())
+{}
+
+Value::Value(const Value &oth) {
+    this->boolVal = oth.boolVal;
+    this->fractVal = oth.fractVal;
+    this->stringVal = std::string(oth.stringVal);
+    this->intVal = oth.intVal;
+}
+
+Value::Value(Value &&oth) {
+    //std::cout<< "MOVE" << std::endl;
+    this->boolVal = std::move(oth.boolVal);
+    this->fractVal = std::move(oth.fractVal);
+    this->stringVal = std::move(oth.stringVal);
+    this->intVal = std::move(oth.intVal);
+}
+
+Value &Value::operator=(const Value &oth) {
+    if (this != &oth) {
+        this->boolVal = oth.boolVal;
+        this->stringVal = oth.stringVal;
+        this->intVal = oth.intVal;
+        this->fractVal = Fraction(oth.fractVal);
+    }
+    return *this;
+}
+
 ValType operator+(const ValType &left, const ValType &right) {
     Value ret;
     Type opType = left.second;
@@ -406,7 +439,7 @@ void Context::setVariableValue(const std::string &varName, const Value &value){
 //    }
 }
 
-ValType &Context::getReturnValue() {
+ValType Context::getReturnValue() {
     return returnValue;
 }
 
@@ -423,7 +456,7 @@ void Context::initializeVariables() {
                 VarDescriptor *varDesc = static_cast<VarDescriptor*>(nameDescPair.second);
                 ValType val;
                 if(varDesc->typeDesc->name == "boolean") {
-                    std::cout << "bool" << std::endl;
+                    //std::cout << "bool" << std::endl;
                     if (varDesc->name == "true") { // builtin variable called "true"
                         val.first.boolVal = true;
                     } else {
@@ -432,19 +465,19 @@ void Context::initializeVariables() {
                     val.second = Type::Bool;
                 }
                 if(varDesc->typeDesc->name == "integer") {
-                    std::cout << "integer" << std::endl;
+                    //std::cout << "integer" << std::endl;
 
                     val.first.intVal = 0;
                     val.second = Type::Int;
                 }
                 if(varDesc->typeDesc->name == "string") {
-                    std::cout << "string" << std::endl;
+                    //std::cout << "string" << std::endl;
 
                     val.first.stringVal = std::string();
                     val.second = Type::String;
                 }
                 if(varDesc->typeDesc->name == "fraction") {
-                    std::cout << "fraction" << std::endl;
+                    //std::cout << "fraction" << std::endl;
 
                     val.first.fractVal = Fraction();
                     val.second = Type::Fraction;
