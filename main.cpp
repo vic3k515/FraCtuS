@@ -64,7 +64,7 @@ int main(int argc, char *argv[]) {
     Scanner scanner(&reader);
     Parser parser(scanner);
     SemanticAnalyzer semAnalyzer;
-    
+
     ProgramNode *tree = nullptr;
     try {
         tree = parser.parse();
@@ -102,6 +102,10 @@ int main(int argc, char *argv[]) {
         std::cout<< e.what() << std::endl;
     }
 
+    // cleaning
+    {
+        delete tree;
+    }
     return 0;
 }
 

@@ -11,6 +11,9 @@
 
 #include "Ast.h"
 
+/**
+ * FraCtuS language interpreter (tree evaluator)
+ */
 class Interpreter /*: public Visitor*/ {
 public:
     using Prototypes = std::map<std::string, Scope*>;

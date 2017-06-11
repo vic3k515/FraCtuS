@@ -18,3 +18,4 @@ set(SOURCE_FILES
 )
 
 add_executable(fractus ${SOURCE_FILES})
+target_compile_options(fractus PRIVATE "-Wall")

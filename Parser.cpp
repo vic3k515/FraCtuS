@@ -67,6 +67,7 @@ ProgramNode* Parser::program() {
     accept(SEMICOLON);
     BlockNode *blockNode = block();
     ProgramNode *programNode = new ProgramNode(varNode->name, blockNode);
+    delete varNode;
     accept(PERIOD);
     return programNode;
 }
@@ -117,7 +118,8 @@ std::vector<VarDeclNode*> Parser::variableDeclaration() {
     }
     accept(COLON);
 
-    TypeNode *typeNode = varType();
+    std::shared_ptr<TypeNode> typeNode(varType());
+    //TypeNode *typeNode = varType();
     for (VarNode* varNode : varNodes) {
         varDecls.push_back(new VarDeclNode(varNode, typeNode));
     }
@@ -170,7 +172,7 @@ ProcDeclNode* Parser::functionDeclaration() {
     std::vector<ParamNode*> params;
     accept(PARENOPEN);
     while (has(varTypes, symbol)) {
-        TypeNode *paramType = varType();
+        std::shared_ptr<TypeNode> paramType(varType());
         VarNode *varNode = var();
         params.push_back(new ParamNode(varNode, paramType));
         if (symbol == COMMA) {

@@ -10,6 +10,13 @@ SemanticAnalyzer::SemanticAnalyzer()
 , prototypes(new std::map<std::string, Scope*>)
 {}
 
+SemanticAnalyzer::~SemanticAnalyzer() {
+    for (auto nameScopePair : *prototypes) {
+        delete nameScopePair.second;
+    }
+    delete prototypes;
+}
+
 void SemanticAnalyzer::visit(const BlockNode *n) {
     for (auto node : n->varDeclarations) {
         //visit(node);
@@ -126,6 +133,7 @@ void SemanticAnalyzer::visit(const VarDeclNode *n) {
     VarDescriptor* varDescriptor = new VarDescriptor(varName, typeDescriptor);
 
     if (currentScope->lookup(varName, true) != nullptr) {
+        delete varDescriptor;
         throw ParseException("Semantic error: Duplicate identifier " + varName + " found");
     }
 

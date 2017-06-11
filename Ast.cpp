@@ -217,7 +217,7 @@ ValType UnaryOpNode::evaluate(Interpreter *interpreter) {
 ValType CompoundNode::evaluate(Interpreter *interpreter) {
     ValType res;
     ValType prevRetVal = interpreter->currContext().getReturnValue();
-    for (auto node : children) {
+    for (auto &&node : children) {
         res = node->evaluate(interpreter);
         //std::cout <<"sep"<< std::endl;
         ValType currRetVal = interpreter->currContext().getReturnValue();
@@ -365,4 +365,80 @@ ValType read(ProcCallNode *node, Interpreter *interpreter) {
     //interpreter->currContext().setVariableValue(procDesc->params[i]->name, val.first);
     //std::cout << "Wczytano : " << val << std::endl;
     return std::make_pair(Value(), Type::Void);
+}
+
+
+/**
+ * Node d-tors
+ */
+BinOpNode::~BinOpNode() {
+    delete left;
+    delete right;
+}
+
+UnaryOpNode::~UnaryOpNode() {
+    delete expression;
+}
+
+CompoundNode::~CompoundNode() {
+    for (auto &&node : children) {
+        delete node;
+    }
+}
+
+AssignNode::~AssignNode() {
+    delete left;
+    delete right;
+}
+
+IfNode::~IfNode() {
+    delete condition;
+    delete thenNode;
+    delete elseNode;
+}
+
+WhileNode::~WhileNode() {
+    delete condition;
+    delete statement;
+}
+
+ReturnNode::~ReturnNode() {
+    delete expr;
+}
+
+ProgramNode::~ProgramNode() {
+    delete block;
+}
+
+BlockNode::~BlockNode() {
+    for (auto &&node : varDeclarations) {
+        delete node;
+    }
+    for (auto &&node : procDeclarations) {
+        delete node;
+    }
+    delete compundStatement;
+}
+
+VarDeclNode::~VarDeclNode() {
+    delete varNode;
+}
+
+ParamNode::~ParamNode() {
+    delete varNode;
+}
+
+ProcDeclNode::~ProcDeclNode() {
+    delete returnType;
+    delete blockNode;
+    for (auto &&node : params) {
+        delete node;
+    }
+}
+
+ProcCallNode::~ProcCallNode() {
+    delete proc;
+    for (auto &&node : arguments) {
+        delete node;
+    }
 }

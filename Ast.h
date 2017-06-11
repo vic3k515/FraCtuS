@@ -7,6 +7,7 @@
 #define FRACTUS_AST_H
 
 #include <vector>
+#include <memory>
 
 #include "Scanner.h"
 #include "Scope.h"
@@ -21,11 +22,13 @@ struct BlockNode;
 struct TypeNode;
 struct VarNode;
 
+/**
+ * AST nodes classes
+ */
 struct Node {
     virtual ~Node() {}
     virtual void accept(Visitor &v) const = 0;
-    virtual ValType evaluate(Interpreter *interpreter);
-    //virtual ValType evaluate(Interpreter *interpreter);
+    virtual ValType evaluate(Interpreter *interpreter) = 0;
 };
 
 struct NumNode : public Node {
@@ -70,6 +73,7 @@ struct StringNode : public NumNode {
 
 struct BinOpNode : public Node {
     BinOpNode(Node *l, Token op, Node *r) : left(l), op(op), right(r) {}
+    ~BinOpNode();
     void accept(Visitor &v) const;
     ValType evaluate(Interpreter *interpreter);
 
@@ -86,6 +90,7 @@ struct LogicalOp : public BinOpNode {
 
 struct UnaryOpNode : public Node {
     UnaryOpNode(Token op, Node* ex) : op(op), expression(ex) {}
+    ~UnaryOpNode();
     void accept(Visitor &v) const;
     ValType evaluate(Interpreter *interpreter);
 
@@ -95,6 +100,7 @@ struct UnaryOpNode : public Node {
 
 struct CompoundNode : public Node {
     CompoundNode() {}
+    ~CompoundNode();
     void accept(Visitor &v) const;
     ValType evaluate(Interpreter *interpreter);
 
@@ -103,6 +109,7 @@ struct CompoundNode : public Node {
 
 struct AssignNode : public Node {
     AssignNode(VarNode *l, Node *r) : left(l), right(r) {}
+    ~AssignNode();
     void accept(Visitor &v) const;
     ValType evaluate(Interpreter *interpreter);
 
@@ -113,6 +120,7 @@ struct AssignNode : public Node {
 struct IfNode : public Node {
     IfNode(Node *c, Node *t, Node *e)
             : condition(c), thenNode(t), elseNode(e) {}
+    ~IfNode();
     void accept(Visitor &v) const;
     ValType evaluate(Interpreter *interpreter);
 
@@ -124,6 +132,7 @@ struct IfNode : public Node {
 struct WhileNode : public Node {
     WhileNode(Node *c, Node *s)
             : condition(c), statement(s) {}
+    ~WhileNode();
     void accept(Visitor &v) const;
     ValType evaluate(Interpreter *interpreter);
 
@@ -133,6 +142,7 @@ struct WhileNode : public Node {
 
 struct ReturnNode : public Node {
     ReturnNode(Node *e) : expr(e) {}
+    ~ReturnNode();
     void accept(Visitor &v) const;
     ValType evaluate(Interpreter *interpreter);
 
@@ -147,13 +157,9 @@ struct VarNode : public Node {
     std::string name;
 };
 
-//struct NoOpNode : public Node {
-//    NoOpNode() {}
-//    void accept(Visitor &v) const;
-//};
-
 struct ProgramNode : public Node {
     ProgramNode(const std::string &n, BlockNode* b) : name(n), block(b) {}
+    ~ProgramNode();
     void accept(Visitor &v) const;
     ValType evaluate(Interpreter *interpreter);
 
@@ -164,6 +170,7 @@ struct ProgramNode : public Node {
 struct BlockNode : public Node {
     BlockNode(std::vector<VarDeclNode*> &vd, std::vector<ProcDeclNode*> &pd, CompoundNode* cS)
             : varDeclarations(vd), procDeclarations(pd), compundStatement(cS) {}
+    ~BlockNode();
     void accept(Visitor &v) const;
     ValType evaluate(Interpreter *interpreter);
 
@@ -173,11 +180,14 @@ struct BlockNode : public Node {
 };
 
 struct VarDeclNode : public Node {
-    VarDeclNode(VarNode* vn, TypeNode* tn) : varNode(vn), typeNode(tn) {}
+    VarDeclNode(VarNode* vn, const std::shared_ptr<TypeNode> &tn) : varNode(vn), typeNode(tn) {}
+    ~VarDeclNode();
     void accept(Visitor &v) const;
+    ValType evaluate(Interpreter *interpreter) {}
 
     VarNode *varNode;
-    TypeNode *typeNode;
+    std::shared_ptr<TypeNode> typeNode; //multiple VarDeclNodes use the same TypeNode object
+    //TypeNode *typeNode;
 };
 
 struct TypeNode : public Node {
@@ -189,18 +199,22 @@ struct TypeNode : public Node {
 };
 
 struct ParamNode : public Node {
-    ParamNode(VarNode* vn, TypeNode* tn) : varNode(vn), typeNode(tn) {}
+    ParamNode(VarNode* vn, const std::shared_ptr<TypeNode> &tn) : varNode(vn), typeNode(tn) {}
+    ~ParamNode();
     void accept(Visitor &v) const;
     ValType evaluate(Interpreter *interpreter);
 
     VarNode *varNode;
-    TypeNode *typeNode;
+    std::shared_ptr<TypeNode> typeNode;
+    //TypeNode *typeNode;
 };
 
 struct ProcDeclNode : public Node {
     ProcDeclNode(const std::string &n, TypeNode* rt, std::vector<ParamNode*> &p, BlockNode* b)
             : name(n), returnType(rt), params(p), blockNode(b) {}
+    ~ProcDeclNode();
     void accept(Visitor &v) const;
+    ValType evaluate(Interpreter *interpreter) {}
 
     std::string name;
     TypeNode* returnType;
@@ -210,6 +224,7 @@ struct ProcDeclNode : public Node {
 
 struct ProcCallNode : public Node {
     ProcCallNode(VarNode *vn, std::vector<Node*> a) : proc(vn), arguments(a) {}
+    ~ProcCallNode();
     void accept(Visitor &v) const;
     ValType evaluate(Interpreter *interpreter);
 
@@ -217,6 +232,9 @@ struct ProcCallNode : public Node {
     std::vector<Node*> arguments;
 };
 
+/**
+ * AST visitor interface
+ */
 class Visitor {
 public:
     virtual void visit(const BinOpNode *n) = 0;

@@ -9,6 +9,9 @@
 #include <iostream>
 #include <utility>
 
+/**
+ * Representation of mixed number (whole + fraction)
+ */
 class Fraction {
 public:
     int whole;

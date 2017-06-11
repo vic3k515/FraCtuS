@@ -5,6 +5,9 @@
 
 #include "Scope.h"
 
+/**
+ * Descriptor c-tors
+ */
 Descriptor::Descriptor(const std::string &name, DescType type)
 : name(name)
 , type(type)
@@ -14,33 +17,38 @@ BuiltInTypeDescriptor::BuiltInTypeDescriptor(const std::string &name)
 : Descriptor(name, DescType::BuiltInType)
 {}
 
+VarDescriptor::VarDescriptor(const std::string &name, BuiltInTypeDescriptor *type)
+        : Descriptor(name, DescType::Var)
+        , typeDesc(type)
+{}
+
+ProcDescriptor::ProcDescriptor(const std::string &name, const std::string &retType, std::vector<VarDescriptor*> &params)
+        : Descriptor(name, DescType::Proc)
+        , retType(retType)
+        , params(params)
+{}
+
+
+/**
+ * Descriptors accept visitor methods
+ */
+
 void BuiltInTypeDescriptor::accept(DescVisitor &v) const {
    v.visit(this);
 }
-
-
-VarDescriptor::VarDescriptor(const std::string &name, BuiltInTypeDescriptor *type)
-: Descriptor(name, DescType::Var)
-, typeDesc(type)
-{}
 
 void VarDescriptor::accept(DescVisitor &v) const {
     v.visit(this);
 }
 
-ProcDescriptor::ProcDescriptor(const std::string &name)
-: Descriptor(name, DescType::Proc)
-{}
-
 void ProcDescriptor::accept(DescVisitor &v) const {
     v.visit(this);
 }
 
-ProcDescriptor::ProcDescriptor(const std::string &name, const std::string &retType, std::vector<VarDescriptor*> &params)
-: Descriptor(name, DescType::Proc)
-, retType(retType)
-, params(params)
-{}
+
+/**
+ * Ostream operators for descriptors
+ */
 
 std::ostream& operator<<(std::ostream& stream, const BuiltInTypeDescriptor &d) {
     stream << "<BuildInTypeDescriptor(name=" << d.name << ")>";
@@ -74,6 +82,10 @@ std::ostream& operator<<(std::ostream& stream, const Descriptor* d) {
     return stream;
 }
 
+/**
+ * Print descriptor visitor methods
+ */
+
 PrintDescVisitor::PrintDescVisitor(std::ostream &stream)
 : stream(stream)
 {}
@@ -89,11 +101,30 @@ void PrintDescVisitor::visit(const ProcDescriptor *n) {
     stream << *n;
 }
 
+/**
+ * Scope c-tor, d-tor
+ */
+
 Scope::Scope(const std::string &name, unsigned int level, Scope *extscope)
 : scopeName(name)
 , level(level)
 , enclosingScope(extscope)
 {}
+
+Scope::~Scope() {
+    for (auto nameDescPair : symbols) {
+        if (nameDescPair.first == "print" || nameDescPair.first == "read") {
+            // free manually allocated memory for these "builtin" methods
+            ProcDescriptor *procDesc = static_cast<ProcDescriptor*>(nameDescPair.second);
+            delete procDesc->params[0];
+        }
+        delete nameDescPair.second;
+    }
+}
+
+/**
+ * Scope symbol table insertion and lookup
+ */
 
 Descriptor* Scope::insert(Descriptor *symbol) {
     //std::cout << "Insert: " << symbol->name << std::endl;
@@ -127,6 +158,14 @@ Scope *Scope::getEnclosingScope() const {
 
 unsigned int Scope::getLevel() const {
     return level;
+}
+
+const std::string &Scope::getScopeName() const {
+    return scopeName;
+}
+
+Scope::Symbols const &Scope::getSymbolTable() const {
+    return symbols;
 }
 
 void Scope::initializeBuiltInTypes() {
@@ -176,14 +215,9 @@ std::ostream& operator<<(std::ostream& os, const Scope& obj) {
     return os;
 }
 
-const std::string &Scope::getScopeName() const {
-    return scopeName;
-}
-
-Scope::Symbols const &Scope::getSymbolTable() const {
-    return symbols;
-}
-
+/**
+ * All things connected with Values
+ */
 
 Value::Value()
 : boolVal(false)
@@ -316,7 +350,7 @@ bool operator<(const ValType &left, const ValType &right) {
         case Type::Fraction:
             return left.first.fractVal < right.first.fractVal;
         default:
-            false;
+            return false;
     }
 }
 
@@ -327,7 +361,7 @@ bool operator>(const ValType &left, const ValType &right) {
         case Type::Fraction:
             return left.first.fractVal > right.first.fractVal;
         default:
-            false;
+            return false;
     }
 }
 
@@ -341,9 +375,11 @@ bool operator>=(const ValType &left, const ValType &right) {
 
 std::ostream& operator<<(std::ostream &os, const ValType &obj) {
     switch (obj.second) {
-        case Type::Bool:
-            os << obj.first.boolVal ? "true" : "false";
+        case Type::Bool: {
+            std::string s = obj.first.boolVal ? "true" : "false";
+            os << s;
             break;
+        }
         case Type::Int:
             os << obj.first.intVal;
             break;
@@ -378,6 +414,10 @@ std::istream& operator>>(std::istream &is, ValType &obj) {
     }
     return is;
 }
+
+/**
+ * Context c-tors
+ */
 
 Context::Context(Scope *ctxScope, Context *globalCtx)
 : contextScope(ctxScope)

@@ -18,6 +18,11 @@
 
 class DescVisitor;
 
+
+/**
+ * Descriptor classes and stuff
+ */
+
 enum class DescType {
     BuiltInType,
     Var,
@@ -48,7 +53,6 @@ struct VarDescriptor : public Descriptor {
 };
 
 struct ProcDescriptor : public Descriptor {
-    ProcDescriptor(const std::string &name);
     ProcDescriptor(const std::string &name, const std::string &retType, std::vector<VarDescriptor*> &params);
     ~ProcDescriptor() {}
     void accept(DescVisitor &v) const;
@@ -63,6 +67,9 @@ std::ostream& operator<<(std::ostream &os, const ProcDescriptor &obj);
 std::ostream& operator<<(std::ostream &os, const Descriptor &obj);
 
 
+/**
+ * Descriptor visitor interface
+ */
 class DescVisitor {
 public:
     virtual void visit(const BuiltInTypeDescriptor *n) = 0;
@@ -70,6 +77,9 @@ public:
     virtual void visit(const ProcDescriptor *n) = 0;
 };
 
+/**
+ * Descriptor printer visitor class
+ */
 class PrintDescVisitor : public DescVisitor {
 public:
     PrintDescVisitor(std::ostream &stream);
@@ -81,14 +91,21 @@ private:
 };
 
 
+/**
+ * Class representing procedure (or global) scope
+ */
 class Scope {
     using Symbols = std::unordered_map<std::string, Descriptor*>;
 public:
     Scope(const std::string& name, unsigned int level, Scope *extscope);
-    ~Scope() {}
+    ~Scope();
+
+    // scope interface methods
     Descriptor *insert(Descriptor *symbol);
     Descriptor *lookup(const std::string &name, bool currentScopeOnly = false);
     void initializeBuiltInTypes();
+
+    // getters, setters
     const std::string &getScopeName() const;
     unsigned int getLevel() const;
     Scope *getEnclosingScope() const;
@@ -103,6 +120,10 @@ private:
     Symbols symbols;
 };
 
+/**
+ * Struct representing value in FraCtuS.
+ * Used together with value type in ValType pair.
+ */
 struct Value {
     Value();
     Value(const Value &oth);
@@ -139,12 +160,16 @@ std::ostream& operator<<(std::ostream &os, const ValType &obj);
 std::istream& operator>>(std::istream &is, ValType &obj);
 
 
+/**
+ * Representation of running context (running frame/stack frame)
+ */
 class Context {
     using Environment = std::map<std::string, ValType>;
 
 public:
     Context(Scope *contextScope, Context *globalContext);
     Context(Context &&oth);
+
     Descriptor *getVariableDescriptor(const std::string &name);
     ValType &getVariableValue(const std::string &varName);
     void setVariableValue(const std::string &varName, const Value &value);
@@ -153,6 +178,7 @@ public:
 
 private:
     void initializeVariables();
+
     Scope *contextScope;
     Context *globalContext;
     Environment environment;

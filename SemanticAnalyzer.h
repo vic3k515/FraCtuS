@@ -7,14 +7,16 @@
 #define FRACTUS_SEMANTICANALYZER_H
 
 #include "Ast.h"
-//#include "Scope.h"
 #include "Parser.h" //ParseException
 
+/**
+ * Tree visitor for semantic checks
+ */
 class SemanticAnalyzer : public Visitor {
 public:
     using Prototypes = std::map<std::string, Scope*>;
     SemanticAnalyzer();
-    ~SemanticAnalyzer() {};
+    ~SemanticAnalyzer();
 
     std::map<std::string, Scope*> *getPrototypes() const;
 
@@ -28,7 +30,6 @@ public:
     void visit(const WhileNode *n);
     void visit(const ReturnNode *n);
     void visit(const VarNode *n);
-    //void visit(const NoOpNode *n) {}
     void visit(const ProgramNode *n);
     void visit(const BlockNode *n);
     void visit(const VarDeclNode *n);

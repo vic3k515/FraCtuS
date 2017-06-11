@@ -16,11 +16,16 @@ public:
 };
 
 
+/**
+ * Parser of FraCtuS language
+ */
 class Parser {
-public:
     using SymSet = std::set<Token>;
 
+public:
     Parser(Scanner &scanner);
+    ~Parser() {}
+
     ProgramNode* parse();
     Token getCurrSymbol() const {
         return symbol;
@@ -32,7 +37,7 @@ private:
     bool has(const SymSet &sset, const Token &tkn);
     void nextSymbol();
 
-    // RD parser methods:
+    // RD parser methods (for each non-terminal in grammar):
     ProgramNode* program();
     BlockNode* block();
     std::vector<VarDeclNode*> variablePart();
@@ -56,6 +61,7 @@ private:
     Node* factor();
     VarNode* var();
 
+    // subsets of tokens
     SymSet  relOp,
             addOp,
             multOp,
