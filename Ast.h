@@ -34,7 +34,7 @@ struct Node {
 struct NumNode : public Node {
     NumNode(Token t) : token(t) {}
     void accept(Visitor &v) {}
-    virtual ValType evaluate(Interpreter *interpreter) {};
+    virtual ValType evaluate(Interpreter *interpreter);
 
     Token token;
 };
@@ -183,7 +183,7 @@ struct VarDeclNode : public Node {
     VarDeclNode(VarNode* vn, const std::shared_ptr<TypeNode> &tn) : varNode(vn), typeNode(tn) {}
     ~VarDeclNode();
     void accept(Visitor &v) const;
-    ValType evaluate(Interpreter *interpreter) {}
+    ValType evaluate(Interpreter *interpreter);
 
     VarNode *varNode;
     std::shared_ptr<TypeNode> typeNode; //multiple VarDeclNodes use the same TypeNode object
@@ -214,7 +214,7 @@ struct ProcDeclNode : public Node {
             : name(n), returnType(rt), params(p), blockNode(b) {}
     ~ProcDeclNode();
     void accept(Visitor &v) const;
-    ValType evaluate(Interpreter *interpreter) {}
+    ValType evaluate(Interpreter *interpreter);
 
     std::string name;
     TypeNode* returnType;

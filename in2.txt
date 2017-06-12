@@ -1,17 +1,18 @@
 program test;
-    var n: integer;
+    var x, r: integer;
 
     integer Fibonacci(integer n);
-        var tmp: integer;
         begin
-            if (n<3) then
+            if (n < 3) then
                 return 1;
 
             return Fibonacci(n - 2) + Fibonacci(n - 1)
         end;
 
     begin
-        read(n);
+        print("Wpisz liczbę całkowitą: ");
+        read(x);
         print("Wynik: ");
-        Fibonacci(n)
+        r = Fibonacci(x);
+        print(r)
     end.

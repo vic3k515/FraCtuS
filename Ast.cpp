@@ -99,20 +99,34 @@ void ParamNode::accept(Visitor &v) const {
  * Evaluation methods
  */
 
+/** empty methods **/
 ValType Node::evaluate(Interpreter *interpreter) {
     return std::make_pair(Value(), Type::Void);
+}
+
+ValType NumNode::evaluate(Interpreter *interpreter) {
+    return std::make_pair(Value(), Type::Void);
+}
+
+ValType VarDeclNode::evaluate(Interpreter *interpreter) {
+    return std::make_pair(Value(), Type::Void);
+}
+
+ValType ProcDeclNode::evaluate(Interpreter *interpreter) {
+    return std::make_pair(Value(), Type::Void);
+}
+
+/** non-empty methods **/
+ValType FractNode::evaluate(Interpreter *interpreter) {
+    Value v;
+    v.fractVal = value;
+    return std::make_pair(v, Type::Fraction);
 }
 
 ValType IntNode::evaluate(Interpreter *interpreter) {
     Value v;
     v.intVal = value;
     return std::make_pair(v, Type::Int);
-}
-
-ValType FractNode::evaluate(Interpreter *interpreter) {
-    Value v;
-    v.fractVal = value;
-    return std::make_pair(v, Type::Fraction);
 }
 
 ValType BoolNode::evaluate(Interpreter *interpreter) {
@@ -176,6 +190,8 @@ ValType BinOpNode::evaluate(Interpreter *interpreter) {
             interpreter->checkNumberOperands(leftRes, rightRes);
             v.boolVal = leftRes >= rightRes;
             return std::make_pair(v, Type::Bool);
+        default:
+            break;
     }
     return std::make_pair(Value(), Type::Void); //should not happen
 }
@@ -206,10 +222,13 @@ ValType UnaryOpNode::evaluate(Interpreter *interpreter) {
                 expRes.first.fractVal.whole = -expRes.first.fractVal.whole;
             }
             return expRes;
-        case NOTSIGN:
+        case NOTSIGN: {
             Value v;
             v.boolVal = !interpreter->isTruthy(expRes);
             return std::make_pair(v, Type::Bool);
+        }
+        default:
+            break;
     }
     return std::make_pair(Value(), Type::Void); //should not happen
 }
@@ -219,7 +238,6 @@ ValType CompoundNode::evaluate(Interpreter *interpreter) {
     ValType prevRetVal = interpreter->currContext().getReturnValue();
     for (auto &&node : children) {
         res = node->evaluate(interpreter);
-        //std::cout <<"sep"<< std::endl;
         ValType currRetVal = interpreter->currContext().getReturnValue();
         if ((prevRetVal.second == Type::Void && currRetVal.second != Type::Void)
             || (prevRetVal != currRetVal)) {
@@ -326,10 +344,18 @@ ValType ProcCallNode::evaluate(Interpreter *interpreter) {
         std::runtime_error("Incorrect number of parameters: " + proc->name);
     }
 
+    // evaluate proc call arguments in current context first
+    std::vector<ValType> evaluatedArgs;
+    for (size_t i = 0; i<arguments.size(); ++i) {
+        evaluatedArgs.emplace_back(arguments[i]->evaluate(interpreter));
+    }
+
+    // then create new context
     interpreter->createNewContextFrame(procDesc->name);
 
-    for (size_t i = 0; i<arguments.size(); ++i) {
-        ValType val = arguments[i]->evaluate(interpreter);
+    for (size_t i = 0; i<evaluatedArgs.size(); ++i) {
+        //ValType val = arguments[i]->evaluate(interpreter);
+        ValType val = evaluatedArgs[i];
         const std::string &parTypeName = procDesc->params[i]->typeDesc->name;
         if (interpreter->typeNames[val.second] != parTypeName) {
             std::runtime_error("Incorrect procedure argument type. Expected: " + parTypeName +
@@ -358,12 +384,9 @@ ValType print(ProcCallNode *node, Interpreter *interpreter) {
 }
 
 ValType read(ProcCallNode *node, Interpreter *interpreter) {
-    //auto valType = node->arguments[0]->evaluate(interpreter);
     VarNode *varNode = static_cast<VarNode*>(node->arguments[0]);
     ValType &val = interpreter->currContext().getVariableValue(varNode->name);
     std::cin >> val;
-    //interpreter->currContext().setVariableValue(procDesc->params[i]->name, val.first);
-    //std::cout << "Wczytano : " << val << std::endl;
     return std::make_pair(Value(), Type::Void);
 }
 

@@ -104,6 +104,7 @@ int main(int argc, char *argv[]) {
 
     // cleaning
     {
+        std::cout << std::endl;
         delete tree;
     }
     return 0;

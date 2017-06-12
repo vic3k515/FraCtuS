@@ -227,7 +227,7 @@ Node* Parser::statement() {
         case BEGIN:
             node = compoundStatement();
             break;
-        case IDENTIFIER:
+        case IDENTIFIER: {
             // can be assignment or function call
             VarNode *pre = var();
             //isSymbolPreloaded = true;
@@ -240,6 +240,9 @@ Node* Parser::statement() {
             } else {
                 throw ParseException("Syntax error: unexpected symbol");
             }
+        }
+        default:
+            break;
     }
     return node;
 }
@@ -416,9 +419,12 @@ Node* Parser::factor() {
             node = expression();
             accept(PARENCLOSE);
             break;
-        case NOTSIGN:
+        case NOTSIGN: {
             accept(NOTSIGN);
             node = new UnaryOpNode(NOTSIGN, factor());
+            break;
+        }
+        default:
             break;
     }
     return node;
