@@ -1,5 +1,6 @@
 program test;
     var x, r: integer;
+        flag: boolean;
 
     integer Fibonacci(integer n);
         begin
@@ -10,9 +11,18 @@ program test;
         end;
 
     begin
-        print("Wpisz liczbę całkowitą: ");
-        read(x);
-        print("Wynik: ");
-        r = Fibonacci(x);
-        print(r)
+        flag=true;
+        while (flag) do
+        begin
+            print("Wpisz liczbę całkowitą: ");
+            read(x);
+            if (x == 0) then
+                flag = false
+            else
+                begin
+                print("Wynik: ");
+                r = Fibonacci(x);
+                print(r)
+            end
+        end
     end.

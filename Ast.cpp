@@ -167,6 +167,7 @@ ValType BinOpNode::evaluate(Interpreter *interpreter) {
             return ValType(leftRes * rightRes);
         case DIVSIGN:
             interpreter->checkNumberOperands(leftRes, rightRes);
+            interpreter->checkDifferentThanZero(rightRes);
             return ValType(leftRes / rightRes);
         case EQOP:
             v.boolVal = leftRes == rightRes;

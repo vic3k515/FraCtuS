@@ -63,6 +63,14 @@ void Interpreter::checkNumberOperands(const ValType &left, const ValType &right)
     throw std::runtime_error("Operands must be numbers.");
 }
 
+void Interpreter::checkDifferentThanZero(const ValType &operand) {
+    if ((operand.second == Type::Int && operand.first.intVal != 0)
+        || (operand.second == Type::Fraction || operand.first.fractVal.numerator != 0)) {
+        return;
+    }
+    throw std::runtime_error("Operand must be different than 0.");
+}
+
 Context &Interpreter::currContext() {
     return contextStack.top();
 }

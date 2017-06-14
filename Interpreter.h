@@ -37,6 +37,7 @@ public:
     bool isTruthy(const ValType &v);
     void checkNumberOperand(const ValType &operand);
     void checkNumberOperands(const ValType &left, const ValType &right);
+    void checkDifferentThanZero(const ValType &operand);
 private:
     Prototypes *scopes;
     std::vector<ProcDeclNode*> &procedures;
